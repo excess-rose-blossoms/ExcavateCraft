@@ -11,12 +11,25 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 // (Can define Main_Scene's class here)
 
 const Main_Scene =
-class Solar_System extends Scene{                                             // **Solar_System**:  Your Assingment's Scene.
-  constructor(){                  // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
+class Not_Solar_System extends Scene{                                             
+  constructor(){                 
       super();
-                                                        // At the beginning of our program, load one of each of these shape 
-                                                        // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
-     
+
+
+     //Shapes                                                   
+     this.shapes = { 'box': new Cube() 
+     };
+
+     //Shaders
+     const phong_shader = new defs.Phong_Shader(2);
+
+     //Materials
+     this.materials = { 'plastic': new Material( phong_shader, 
+                                    { ambient: 0.5, diffusivity: 1, specularity: 0, color: Color.of( 1,1,1,1 ) } )
+     };
+
+
+
     }
   make_control_panel(){                                
     }
@@ -29,7 +42,6 @@ class Solar_System extends Scene{                                             //
           this.children.push( context.scratchpad.controls = new defs.Movement_Controls() ); 
 
                                 // Add a helper scene / child scene that allows viewing each moving body up close.
-          this.children.push( this.camera_teleporter = new Camera_Teleporter() );
 
                     // Define the global camera and projection matrices, which are stored in program_state.  The camera
                     // matrix follows the usual format for transforms, but with opposite values (cameras exist as 
@@ -45,6 +57,12 @@ class Solar_System extends Scene{                                             //
                                                                       // Find how much time has passed in seconds; we can use
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
+
+      program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
+
+      let model_transform = Mat4.identity();
+      
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );
 
     }
 }
