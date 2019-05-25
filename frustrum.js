@@ -1,5 +1,6 @@
 import {tiny, defs} from './assignment-4-resources.js';
 import {Block} from './blocks.js';
+import {AvlTree} from './bbtree.js';
                                                                 // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -7,11 +8,11 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
 export class Frustrum
 {
-  constructor(block_tree){
+  constructor(){
     this.view_box_normalized = Vec.cast( [-1, -1, -1],  [1,  -1, -1],  [-1, 1, -1],  [1,  1, -1],  
                                       [-1, -1, 1],   [1,  -1, 1],   [-1, 1, 1],   [1,  1, 1]  );
     this.corner_points = [];
-    this.block_tree = block_tree;
+    this.block_tree = new AvlTree(compare);
   }
 
   derive_frustum_points_from_matrix( m, points )
@@ -75,10 +76,19 @@ export class Frustrum
   draw(context, program_state){
       this.update_frustrum(program_state);
       this.planes = this.get_planes();
-      if(this.should_draw(Vec.of(-50,150,-150))){
-        console.log("Draw");        
-      }else{
-      }
+      this.inOrder(this.block_tree._root, this.corner_points[0], this.corner_points[7]);
+  }
+
+  inOrder(root, leastCoord, mostCoord){
+    if(!root){
+      return;
+    }
+    this.inOrder(root.left, leastCoord, mostCoord);
+    if(this.should_draw(root.key)){
+      //TODO: Draw object --> root.value
+    }
+    this.inOrder(root.right, leastCoord, mostCoord);
+    return;
   }
 
 };
@@ -97,11 +107,15 @@ class Plane{
   }
 };
 
-export class BlockTree{
-    constructor(){
-        
+function compare(coord1, coord2){
+  let dif = coord1.minus(coord2);
+  for(var i = 0; i < 3; i ++){
+    if(dif[i] != 0){
+      return dif[i];
     }
-};
+  }
+  return 0;
+}
 
 
 

@@ -1,6 +1,6 @@
 import {tiny, defs} from './assignment-4-resources.js';
 import {Block} from './blocks.js';
-import {Frustrum, BlockTree} from './frustrum.js';
+import {Frustrum} from './frustrum.js';
                                                                 // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -17,8 +17,7 @@ class Solar_System extends Scene{                                             //
       super();
                                                         // At the beginning of our program, load one of each of these shape 
                                                         // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
-      this.block_tree = new BlockTree();
-      this.frustrum = new Frustrum(this.block_tree)
+      this.frustrum = new Frustrum()
       
     }
   make_control_panel(){                                
