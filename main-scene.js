@@ -30,7 +30,7 @@ class Not_Solar_System extends Scene{
     }
   display( context, program_state )
     {          
-      program_state.set_camera( Mat4.look_at( Vec.of( 0,10,20 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ) );
+      program_state.set_camera( Mat4.look_at( Vec.of(-5,5,1 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ) );
       this.initial_camera_location = program_state.camera_inverse;
       program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 200 );
 
