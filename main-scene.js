@@ -64,6 +64,31 @@ class Not_Solar_System extends Scene{
       
       this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );
 
+      model_transform = model_transform
+                          .times( Mat4.translation( Vec.of(0,10,0) ) );
+      
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );     
+
+      model_transform = model_transform
+                          .times( Mat4.translation( Vec.of(0,5,5) ) );  
+
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic ); 
+
+      model_transform = model_transform
+                          .times( Mat4.translation( Vec.of(0,5,5) ) );  
+
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );  
+
+            model_transform = model_transform
+                          .times( Mat4.translation( Vec.of(0,5,5) ) );  
+
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic ); 
+
+            model_transform = model_transform
+                          .times( Mat4.translation( Vec.of(0,5,5) ) );  
+
+      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );             
+
     }
 }
 

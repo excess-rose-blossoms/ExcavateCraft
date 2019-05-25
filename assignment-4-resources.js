@@ -586,11 +586,12 @@ class Movement_Controls extends Scene
       const data_members = { roll: 0, look_around_locked: true, 
                              thrust: Vec.of( 0,0,0 ), pos: Vec.of( 0,0,0 ), z_axis: Vec.of( 0,0,0 ),
                              radians_per_frame: 1/200, meters_per_frame: 20, speed_multiplier: 1, 
-                             input_list: { w: false, a: false, s: false, d: false, space: false, z:false }
+                             input_list: { w: false, a: false, s: false, d: false, space: false, z:false },
+                             my_rot: Vec.of( 0,0,0 )
                            };
       Object.assign( this, data_members );
 
-      //this.mouse_enabled_canvases = new Set();
+      this.mouse_enabled_canvases = new Set();
       this.will_take_over_graphics_state = true;
     }
   set_recipient( matrix_closure, inverse_closure )
@@ -607,7 +608,7 @@ class Movement_Controls extends Scene
                           () => graphics_state.camera_inverse   );
     }
   
-  /*
+  
   add_mouse_controls( canvas )
     {                                       // add_mouse_controls():  Attach HTML mouse events to the drawing canvas.
                                             // First, measure mouse steering, for rotating the flyaround camera:
@@ -619,7 +620,8 @@ class Movement_Controls extends Scene
       canvas  .addEventListener( "mousedown", e => { e.preventDefault(); this.mouse.anchor      = mouse_position(e); } );
       canvas  .addEventListener( "mousemove", e => { e.preventDefault(); this.mouse.from_center = mouse_position(e); } );
       canvas  .addEventListener( "mouseout",  e => { if( !this.mouse.anchor ) this.mouse.from_center.scale(0) } );
-    }*/
+    }
+
   show_explanation( document_element ) { }
 
   //Based on the input array
@@ -669,8 +671,8 @@ class Movement_Controls extends Scene
   make_control_panel()
     {                                 // make_control_panel(): Sets up a panel of interactive HTML elements, including
                                       // buttons with key bindings for affecting this scene, and live info readouts.
-      /*this.control_panel.innerHTML += "Click and drag the scene to <br> spin your viewpoint around it.<br>";
-      this.key_triggered_button( "Up",     [ " " ], () => this.thrust[1] = -1, undefined, () => this.thrust[1] = 0 );
+      //this.control_panel.innerHTML += "Click and drag the scene to <br> spin your viewpoint around it.<br>";
+      /*this.key_triggered_button( "Up",     [ " " ], () => this.thrust[1] = -1, undefined, () => this.thrust[1] = 0 );
       this.key_triggered_button( "Forward",[ "w" ], () => this.thrust[2] =  1, undefined, () => this.thrust[2] = 0 );
       this.new_line();
       this.key_triggered_button( "Left",   [ "a" ], () => this.thrust[0] =  1, undefined, () => this.thrust[0] = 0 );
@@ -738,10 +740,11 @@ class Movement_Controls extends Scene
       this.new_line();
       this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  ); 
     }
+    /*
   first_person_flyaround( radians_per_frame, meters_per_frame, leeway = 70 )
     {                                                     // (Internal helper function)
                                                           // Compare mouse's location to all four corners of a dead box:
-      /*const offsets_from_dead_box = { plus: [ this.mouse.from_center[0] + leeway, this.mouse.from_center[1] + leeway ],
+      const offsets_from_dead_box = { plus: [ this.mouse.from_center[0] + leeway, this.mouse.from_center[1] + leeway ],
                                      minus: [ this.mouse.from_center[0] - leeway, this.mouse.from_center[1] - leeway ] }; 
                                                           // Apply a camera rotation movement, but only when the mouse is
                                                           // past a minimum distance (leeway) from the canvas's center:
@@ -757,17 +760,17 @@ class Movement_Controls extends Scene
           this.inverse().pre_multiply( Mat4.rotation( +velocity, Vec.of( i, 1-i, 0 ) ) );
         }
       this.matrix().post_multiply( Mat4.rotation( -.1 * this.roll, Vec.of( 0,0,1 ) ) );
-      this.inverse().pre_multiply( Mat4.rotation( +.1 * this.roll, Vec.of( 0,0,1 ) ) );*/
+      this.inverse().pre_multiply( Mat4.rotation( +.1 * this.roll, Vec.of( 0,0,1 ) ) );
                                     // Now apply translation movement of the camera, in the newest local coordinate frame.
       //this.matrix().post_multiply( Mat4.translation( this.thrust.times( -meters_per_frame ) ) );
       //this.inverse().pre_multiply( Mat4.translation( this.thrust.times( +meters_per_frame ) ) );
-    }
+    }*/
 
-  /*
+  
   third_person_arcball( radians_per_frame )
     {                                           // (Internal helper function)
                                                 // Spin the scene around a point on an axis determined by user mouse drag:
-      const dragging_vector = this.mouse.from_center.minus( this.mouse.anchor );
+      /*const dragging_vector = this.ma//this.mouse.from_center.minus( this.matrix() )//this.mouse.anchor );
       if( dragging_vector.norm() <= 0 )
         return;
       this.matrix().post_multiply( Mat4.translation([ 0,0, -25 ]) );
@@ -779,8 +782,31 @@ class Movement_Controls extends Scene
       this.inverse().pre_multiply( rotation );
 
       this. matrix().post_multiply( Mat4.translation([ 0,0, +25 ]) );
-      this.inverse().pre_multiply( Mat4.translation([ 0,0, -25 ]) );
-    }*/
+      this.inverse().pre_multiply( Mat4.translation([ 0,0, -25 ]) );*/
+
+
+      //Work out how much rotation should be added based on position of mouse
+      let y_rad = radians_per_frame * (this.mouse.from_center[0]/100)
+      let x_rad = radians_per_frame * (this.mouse.from_center[1]/100)
+      
+      //Rotation around y-axis
+      const y_rotation = Mat4.rotation( y_rad, Vec.of(0,1,0) );
+       
+      this.matrix().post_multiply( y_rotation );
+      this.inverse().pre_multiply( y_rotation );
+
+      this.my_rot[1] += y_rad;
+
+      console.log(this.my_rot[0]);
+      //Rotation along x-axis
+      if ((this.my_rot[0] + x_rad <= (Math.PI/2) ) && (this.my_rot[0] + x_rad >= -(Math.PI/2)))
+      {
+        const x_rotation = Mat4.rotation( x_rad, Vec.of(1,0,0) );
+        this.matrix().post_multiply( x_rotation );
+        this.inverse().pre_multiply( x_rotation );
+        this.my_rot[0] += x_rad;
+      }
+    }
 
   //Takes care of wasd movement only
   wasd_move( input_list, meters_per_frame )
@@ -818,13 +844,27 @@ class Movement_Controls extends Scene
 
       //MY LITTLE CODE HERE//
       const move_speed_final = this.speed_multiplier * this.meters_per_frame * dt;
+      const radian_speed_final = this.speed_multiplier * this.radians_per_frame * dt;
 
       if (this.will_take_over_graphics_state)
       {
         this.reset( graphics_state );
       }
+
+      if( !this.mouse_enabled_canvases.has( context.canvas ) )
+      { 
+        this.add_mouse_controls( context.canvas );
+        this.mouse_enabled_canvases.add( context.canvas )
+      }
       
       //Translation movement
       this.wasd_move( this.input_list, move_speed_final );
+
+      // Also apply third-person "arcball" camera mode if a mouse drag is occurring:
+      if ( this.mouse.anchor )
+      {
+        this.third_person_arcball( this.radians_per_frame );  
+      }
+        
   }
 }
