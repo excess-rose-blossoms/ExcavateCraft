@@ -1,5 +1,6 @@
 import {tiny, defs} from './assignment-4-resources.js';
 import {Block} from './blocks.js';
+import {Frustrum, BlockTree} from './frustrum.js';
                                                                 // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -16,7 +17,9 @@ class Solar_System extends Scene{                                             //
       super();
                                                         // At the beginning of our program, load one of each of these shape 
                                                         // definitions onto the GPU.  NOTE:  Only do this ONCE per shape.
-     
+      this.block_tree = new BlockTree();
+      this.frustrum = new Frustrum(this.block_tree)
+      
     }
   make_control_panel(){                                
     }
@@ -29,7 +32,7 @@ class Solar_System extends Scene{                                             //
           this.children.push( context.scratchpad.controls = new defs.Movement_Controls() ); 
 
                                 // Add a helper scene / child scene that allows viewing each moving body up close.
-          this.children.push( this.camera_teleporter = new Camera_Teleporter() );
+          //this.children.push( this.camera_teleporter = new Camera_Teleporter() );
 
                     // Define the global camera and projection matrices, which are stored in program_state.  The camera
                     // matrix follows the usual format for transforms, but with opposite values (cameras exist as 
@@ -45,7 +48,9 @@ class Solar_System extends Scene{                                             //
                                                                       // Find how much time has passed in seconds; we can use
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
-
+      
+      this.frustrum.draw(program_state);
+      
     }
 }
 
