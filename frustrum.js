@@ -19,11 +19,17 @@ export class Frustrum
                    .map( p => p.map( x => x/p[3] ).to3() );            // Manually do a perspective division
     }
   
-  should_draw(block){
-    
+
+  should_draw(coord){
+    for(var i =0; i < 6; i++){
+      if(! this.planes[i].on_correct_side(coord)){
+        return false;
+      }
+    }
+    return true;
   }
   
-  get_plane_normals(){
+  get_planes(){
     let normals = [];
     let [nld, nrd, nlu, nru, fld, frd, flu, fru] =this.corner_points;
     let nldtou = nlu.minus(nld);
@@ -38,12 +44,23 @@ export class Frustrum
     let nultor = nru.minus(nlu);
     let luntof = flu.minus(nlu);
     let top_normal = luntof.cross(nultor).normalized();
+    let top_plane = new Plane(top_normal, fru);
     let fldtou = flu.minus(fld);
     let fdltor = frd.minus(fld);
     let far_normal = fdltor.cross(fldtou).normalized();
 
-    return [near_normal, far_normal, left_normal, right_normal, bottom_normal, top_normal]; 
-
+    let planes = [near_normal, left_normal, bottom_normal, far_normal, right_normal, top_normal]
+    .map((normal, index) => {
+      let point;
+      if(index < 3){
+        point = nld;
+      }
+      else{
+        point = fru;
+      }
+      return new Plane(normal, point);
+    });
+    return planes;
 
   }
 
@@ -55,19 +72,37 @@ export class Frustrum
       this.corner_points = this.derive_frustum_points_from_matrix( program_state.projection_transform, this.view_box_normalized );
   }
 
-  draw(program_state){
+  draw(context, program_state){
       this.update_frustrum(program_state);
-      let normals = this.get_plane_normals();
+      this.planes = this.get_planes();
+      if(this.should_draw(Vec.of(-50,150,-150))){
+        console.log("Draw");        
+      }else{
+      }
   }
 
 };
 
+
+class Plane{
+  constructor(normal, point){
+    this.normal = normal;
+    this.point = point;
+  }
+  on_correct_side(coord){
+    if(coord.minus(this.point).dot(this.normal) < 0){
+      return false;
+    }
+    return true;
+  }
+};
 
 export class BlockTree{
     constructor(){
         
     }
 };
+
 
 
 

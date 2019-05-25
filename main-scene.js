@@ -49,7 +49,7 @@ class Solar_System extends Scene{                                             //
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
       
-      this.frustrum.draw(program_state);
+      this.frustrum.draw(context, program_state);
       
     }
 }
