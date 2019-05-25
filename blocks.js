@@ -1,7 +1,8 @@
 import {defs, tiny} from './assignment-4-resources.js';
 
+const {Texture, Material} = tiny;
 const shader = new defs.Textured_Phong(2);
-
+const material = new Material(shader, {ambient: .4, diffusivity: .4, specularity: .4, color: tiny.Color.of(.3,.3,.3,1)})
 export class Block extends defs.Cube{
     constructor(){
         super();
@@ -18,15 +19,22 @@ export class Block extends defs.Cube{
 
 export class GrassBlock extends Block{
     #material;
-    #shader;
     constructor(){
         super();
-        this.#shader = shader;
-        this.#material = new tiny.Material(this.#shader, { texture: new tiny.Texture( "assets/grass.png" ),
-                  ambient: 1, diffusivity: 1, specularity: 0, color: tiny.Color.of( .4,.4,.4,1 )});
+        this.#material = material.override({ texture: new Texture( "assets/grass.png" )});
     }
     draw(context, program_state, transform){
-        let mat = this.#material;
-        super.draw(context, program_state, transform, mat);
+        super.draw(context, program_state, transform, this.#material);
+    }
+}
+
+export class BrickBlock extends Block{
+    #material;
+    constructor(){
+        super();
+        this.#material = material.override({texture: new Texture("assets/bricks.png")});
+    }
+    draw(context, program_state, transform){
+        super.draw(context, program_state, transform, this.#material);
     }
 }
