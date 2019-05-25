@@ -38,3 +38,47 @@ export class BrickBlock extends Block{
         super.draw(context, program_state, transform, this.#material);
     }
 }
+
+export class StoneBlock extends Block{
+    #material;
+    constructor(){
+        super();
+        this.#material = material.override({texture: new Texture("assets/stone.png")});
+    }
+    draw(context, program_state, transform){
+        super.draw(context, program_state, transform, this.#material);
+    }
+}
+
+export class SandBlock extends Block{
+    #material;
+    constructor(){
+        super();
+        this.#material = material.override({texture: new Texture("assets/sand.png")});
+    }
+    draw(context, program_state, transform){
+        super.draw(context, program_state, transform, this.#material);
+    }
+}
+
+export class WoodBlock extends Block{
+    #material;
+    constructor(){
+        super();
+        this.#material = material.override({texture: new Texture("assets/wood.png")});
+    }
+    draw(context, program_state, transform){
+        super.draw(context, program_state, transform, this.#material);
+    }
+}
+
+export class LeafBlock extends Block{
+    #material;
+    constructor(){
+        super();
+        this.#material = material.override({texture: new Texture("assets/leaves.png")});
+    }
+    draw(context, program_state, transform){
+        super.draw(context, program_state, transform, this.#material);
+    }
+}
