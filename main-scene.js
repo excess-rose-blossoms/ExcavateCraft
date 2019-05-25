@@ -1,37 +1,28 @@
 import {tiny, defs} from './assignment-4-resources.js';
-import {Block} from './blocks.js';
+import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock} from './blocks.js';
                                                                 // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
 const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
-    // Now we have loaded everything in the files tiny-graphics.js, tiny-graphics-widgets.js, and assignment-4-resources.js.
-    // This yielded "tiny", an object wrapping the stuff in the first two files, and "defs" for wrapping all the rest.
-
-// (Can define Main_Scene's class here)
-
 const Main_Scene =
-class Not_Solar_System extends Scene{                                             
+class Not_Solar_System extends Scene{      
+
+  #blocks;  
+  #materials;                                     
   constructor(){                 
-      super();
-
-
-     //Shapes                                                   
-     this.shapes = { 'box': new Cube() 
-     };
-
-     //Shaders
-     const phong_shader = new defs.Phong_Shader(2);
-
-     //Materials
-     this.materials = { 'plastic': new Material( phong_shader, 
-                                    { ambient: 0.5, diffusivity: 1, specularity: 0, color: Color.of( 1,1,1,1 ) } )
-     };
-
-
-
+     super();
+     this.#blocks = {
+                    grass: new GrassBlock(),
+                    brick: new BrickBlock(),
+                    stone: new StoneBlock(),
+                    sand: new SandBlock(),
+                    wood: new WoodBlock(),
+                    leaf: new LeafBlock()
+  };
     }
-  make_control_panel(){                                
+  make_control_panel(){     
+                             
     }
   display( context, program_state )
     {   
@@ -57,6 +48,17 @@ class Not_Solar_System extends Scene{
                                                                       // Find how much time has passed in seconds; we can use
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
+      
+      program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
+
+      let model_transform = Mat4.identity();
+      
+      this.#blocks.grass.draw( context, program_state, model_transform);
+      this.#blocks.brick.draw(context, program_state, model_transform.times(Mat4.translation([1,0,0])));
+      this.#blocks.stone.draw(context, program_state, model_transform.times(Mat4.translation([-1,0,0])));
+      this.#blocks.sand.draw(context, program_state, model_transform.times(Mat4.translation([0,0,-1])));
+      this.#blocks.wood.draw(context, program_state, model_transform.times(Mat4.translation([1,1,-1])));
+      this.#blocks.leaf.draw(context, program_state, model_transform.times(Mat4.translation([-1,1,-1])));
 
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
 
@@ -95,6 +97,5 @@ class Not_Solar_System extends Scene{
 const Additional_Scenes = [];
 
 export { Main_Scene, Additional_Scenes, Canvas_Widget, Code_Widget, Text_Widget, defs }
-
 
 

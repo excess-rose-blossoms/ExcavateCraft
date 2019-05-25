@@ -43,7 +43,7 @@ class Square extends Shape
   constructor()
     { super( "position", "normal", "texture_coord" );
                                           // Specify the 4 square corner locations, and match those up with normal vectors:
-      this.arrays.position      = Vec.cast( [-1,-1,0], [1,-1,0], [-1,1,0], [1,1,0] );
+      this.arrays.position      = Vec.cast( [-.5,-.5,0], [.5,-.5,0], [-.5,.5,0], [.5,.5,0] );
       this.arrays.normal        = Vec.cast( [0,0,1],   [0,0,1],  [0,0,1],  [0,0,1] );
                                                           // Arrange the vertices into a square shape in texture space too:
       this.arrays.texture_coord = Vec.cast( [0,0],     [1,0],    [0,1],    [1,1]   );
@@ -145,7 +145,7 @@ class Cube extends Shape
         for( var j = 0; j < 2; j++ )
         { var square_transform = Mat4.rotation( i == 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
                          .times( Mat4.rotation( Math.PI * j - ( i == 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
-                         .times( Mat4.translation([ 0, 0, 1 ]) );
+                         .times( Mat4.translation([ 0, 0, .5 ]) );
                                   // Calling this function of a Square (or any Shape) copies it into the specified
                                   // Shape (this one) at the specified matrix offset (square_transform):
           Square.insert_transformed_copy_into( this, [], square_transform );
