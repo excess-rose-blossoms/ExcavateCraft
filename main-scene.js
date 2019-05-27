@@ -62,34 +62,34 @@ class Not_Solar_System extends Scene{
 
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
 
-      let model_transform = Mat4.identity();
+      model_transform = Mat4.identity();
       
-      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );
+      this.#blocks.grass.draw( context, program_state, model_transform);
 
       model_transform = model_transform
                           .times( Mat4.translation( Vec.of(0,10,0) ) );
       
-      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );     
+      this.#blocks.grass.draw( context, program_state, model_transform); 
 
       model_transform = model_transform
                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
 
-      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic ); 
+      this.#blocks.grass.draw( context, program_state, model_transform);
 
       model_transform = model_transform
                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
 
-      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );  
+      this.#blocks.grass.draw( context, program_state, model_transform);
 
             model_transform = model_transform
                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
 
-      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic ); 
+      this.#blocks.grass.draw( context, program_state, model_transform);
 
             model_transform = model_transform
                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
 
-      this.shapes.box.draw( context, program_state, model_transform, this.materials.plastic );             
+      this.#blocks.grass.draw( context, program_state, model_transform);
 
     }
 }
