@@ -1,4 +1,5 @@
 import {tiny, defs} from './assignment-4-resources.js';
+import {Frustrum} from './frustrum.js';
 import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock} from './blocks.js';
                                                                 // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
@@ -6,7 +7,9 @@ const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
 const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
 const Main_Scene =
+
 class Not_Solar_System extends Scene{      
+      this.frustrum = new Frustrum()
 
   #blocks;  
   #materials;                                     
@@ -34,6 +37,7 @@ class Not_Solar_System extends Scene{
 
                                 // Add a helper scene / child scene that allows viewing each moving body up close.
 
+
                     // Define the global camera and projection matrices, which are stored in program_state.  The camera
                     // matrix follows the usual format for transforms, but with opposite values (cameras exist as 
                     // inverted matrices).  The projection matrix follows an unusual format and determines how depth is 
@@ -48,6 +52,8 @@ class Not_Solar_System extends Scene{
                                                                       // Find how much time has passed in seconds; we can use
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
+      
+      this.frustrum.draw(context, program_state);
       
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
 
