@@ -3,6 +3,7 @@ import {Frustrum} from './frustrum.js';
 import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock} from './blocks.js';
 import {InputManager} from './input_manager.js';   
 import {gen_tree} from './generateTree.js';
+import {Map} from './hash.js';
 
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -12,7 +13,9 @@ const Main_Scene =
 class Not_Solar_System extends Scene{      
   #blocks;  
   #materials;
-  #input_manager;                                     
+  #input_manager;   
+  #map;    
+  #frustrum;                              
   constructor(){                 
      super();
      this.#blocks = {
@@ -24,7 +27,9 @@ class Not_Solar_System extends Scene{
                     leaf: new LeafBlock()
     };
     this.#input_manager = new InputManager();
-    gen_tree();
+    this.#map = new Map()
+    this.#frustrum = new Frustrum(this);
+    gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
     }
   make_control_panel(){     
                              
@@ -61,12 +66,12 @@ class Not_Solar_System extends Scene{
 
       let model_transform = Mat4.identity();
       
-      this.#blocks.grass.draw( context, program_state, model_transform);
+     /* this.#blocks.grass.draw( context, program_state, model_transform);
       this.#blocks.brick.draw(context, program_state, model_transform.times(Mat4.translation([1,0,0])));
       this.#blocks.stone.draw(context, program_state, model_transform.times(Mat4.translation([-1,0,0])));
       this.#blocks.sand.draw(context, program_state, model_transform.times(Mat4.translation([0,0,-1])));
       this.#blocks.wood.draw(context, program_state, model_transform.times(Mat4.translation([1,1,-1])));
-      this.#blocks.leaf.draw(context, program_state, model_transform.times(Mat4.translation([-1,1,-1])));
+      this.#blocks.leaf.draw(context, program_state, model_transform.times(Mat4.translation([-1,1,-1])));*/
 
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
 
@@ -98,6 +103,7 @@ class Not_Solar_System extends Scene{
                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
 
       this.#blocks.grass.draw( context, program_state, model_transform);
+      this.#frustrum.draw(context, program_state);
       
     }
 }
