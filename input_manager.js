@@ -3,13 +3,13 @@
 export class InputManager{
   #holdtime;
   constructor(){
-    this.#holdtime = 0;
+    this.#holdtime = null;
   }
 
   perform_action(context, program_state){
-    let camera_translation = [program_state.camera_tranform[0][3], 
-                                    program_state.camera_tranform[1][3],
-                                    program_state.camera_tranform[2][3]];
+    let camera_translation = [program_state.camera_transform[0][3], 
+                                    program_state.camera_transform[1][3],
+                                    program_state.camera_transform[2][3]];
     context.canvas.onmousedown = e => {
       console.log("Clicke"); 
       this.#holdtime = new Date().getTime();
@@ -21,13 +21,13 @@ export class InputManager{
   };
 
   get_selected_block(program_state, blocks){
-    let camera_position = [program_state.camera_tranform[0][3], 
-                                    program_state.camera_tranform[1][3],
-                                    program_state.camera_tranform[2][3]];
+    let camera_position = [program_state.camera_transform[0][3], 
+                                    program_state.camera_transform[1][3],
+                                    program_state.camera_transform[2][3]];
 
-    let camera_forward = [program_state.camera_tranform[0][2], 
-                                    program_state.camera_tranform[1][2],
-                                    program_state.camera_tranform[2][2]];
+    let camera_forward = [program_state.camera_transform[0][2], 
+                                    program_state.camera_transform[1][2],
+                                    program_state.camera_transform[2][2]];
     let spot = [0,0,0];
     for(var i = 0.1; i < 3; i = i + 1){
       spot[0] = parseInt(camera_position[0] + (camera_forward[0] * i));

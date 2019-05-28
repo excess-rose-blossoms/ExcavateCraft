@@ -2,7 +2,7 @@ import {tiny, defs} from './assignment-4-resources.js';
 import {Frustrum} from './frustrum.js';
 import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock} from './blocks.js';
 import {InputManager} from './input_manager.js';   
-
+import {gen_tree} from './generateTree.js';
 
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -24,6 +24,7 @@ class Not_Solar_System extends Scene{
                     leaf: new LeafBlock()
     };
     this.#input_manager = new InputManager();
+    gen_tree();
     }
   make_control_panel(){     
                              
