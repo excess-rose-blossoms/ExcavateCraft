@@ -8,11 +8,17 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
 export class Frustrum
 {
-  constructor(){
+  constructor(scene){
+    this.scene = scene;
+    this.map = scene.map;
     this.view_box_normalized = Vec.cast( [-1, -1, -1],  [1,  -1, -1],  [-1, 1, -1],  [1,  1, -1],  
                                       [-1, -1, 1],   [1,  -1, 1],   [-1, 1, 1],   [1,  1, 1]  );
     this.corner_points = [];
     this.block_tree = new AvlTree(compare);
+  }
+
+  insertBlock(coord, block){
+    this.block_tree.insert(Vec.of(...coord), block);
   }
 
   derive_frustum_points_from_matrix( m, points )
@@ -27,6 +33,7 @@ export class Frustrum
         return false;
       }
     }
+    
     return true;
   }
   
@@ -71,11 +78,22 @@ export class Frustrum
         corner_points = [nld, nrd, nlu, nru, fld, frd, flu, fru]
       */
       this.corner_points = this.derive_frustum_points_from_matrix( program_state.projection_transform, this.view_box_normalized );
+
+      let corner_points = [];
+      for(var i =0; i < 8; i++){
+        let point = Vec.of(...this.corner_points[i], 1.0);
+        point = program_state.camera_transform.times(point);
+        point = Vec.of(... (point.slice(0, 3)));
+        corner_points.push(point);
+      }
+      this.corner_points = corner_points;
+      this.planes = this.get_planes();
   }
 
   draw(context, program_state){
+      this.context = context;
+      this.program_state = program_state;
       this.update_frustrum(program_state);
-      this.planes = this.get_planes();
       this.inOrder(this.block_tree._root, this.corner_points[0], this.corner_points[7]);
   }
 
@@ -85,7 +103,8 @@ export class Frustrum
     }
     this.inOrder(root.left, leastCoord, mostCoord);
     if(this.should_draw(root.key)){
-      //TODO: Draw object --> root.value
+      root.value.draw(this.context, this.program_state, Mat4.identity().times(Mat4.translation(root.key)));
+      //console.log(this.corner_points);
     }
     this.inOrder(root.right, leastCoord, mostCoord);
     return;
