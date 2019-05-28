@@ -4,6 +4,7 @@ import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlo
 import {InputManager} from './input_manager.js';   
 import {gen_tree} from './generateTree.js';
 import {Map} from './hash.js';
+import {MapGenerator} from './generateTerrain.js';
 
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -15,7 +16,8 @@ class Not_Solar_System extends Scene{
   #materials;
   #input_manager;   
   #map;    
-  #frustrum;                              
+  #frustrum;
+  #mapGenerator;                              
   constructor(){                 
      super();
      this.#blocks = {
@@ -29,7 +31,11 @@ class Not_Solar_System extends Scene{
     this.#input_manager = new InputManager();
     this.#map = new Map()
     this.#frustrum = new Frustrum(this);
-    gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
+    this.#mapGenerator = new MapGenerator();
+    //gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
+    this.#mapGenerator.generate_chunk([0,-1], this.#frustrum, this.#blocks);
+    this.#mapGenerator.generate_chunk([-1,-1], this.#frustrum, this.#blocks);
+
     }
   make_control_panel(){     
                              
