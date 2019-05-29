@@ -29,7 +29,7 @@ class Canvas_Widget
         canvas.style.display = "none";
 
       this.patch_ios_bug();
-      this.webgl_manager = new tiny.Webgl_Manager( canvas, Color.of( 0,0,0,1 ) );  // Second parameter sets background color.
+      this.webgl_manager = new tiny.Webgl_Manager( canvas, Color.of( 0.640,0.812,1,1 ) );  // Second parameter sets background color.
 
       this.embedded_controls_area = this.element.appendChild( document.createElement( "div" ) );
       this.embedded_controls_area.className = "controls-widget";
