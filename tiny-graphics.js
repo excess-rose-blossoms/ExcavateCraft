@@ -745,19 +745,96 @@ class Program_State extends Container
                                       // subclass must override its method "update_GPU()" to define how to send your
                                       // Program_State's particular values over to your custom shader program.
   constructor( camera_transform = Mat4.identity(), projection_transform = Mat4.identity() ) 
-    { super();
+  { 
+      super();
       this.set_camera( camera_transform );
       const defaults = { projection_transform, animate: true, animation_time: 0, animation_delta_time: 0 };
       Object.assign( this, defaults );
-    }
+  }
+
   set_camera( matrix )
-    {                       // set_camera():  Applies a new (inverted) camera matrix to the Program_State.
+  {                       // set_camera():  Applies a new (inverted) camera matrix to the Program_State.
                             // It's often useful to cache both the camera matrix and its inverse.  Both are needed
                             // often and matrix inversion is too slow to recompute needlessly.  
                             // Note that setting a camera matrix traditionally means storing the inverted version, 
                             // so that's the one this function expects to receive; it automatically sets the other.
       Object.assign( this, { camera_transform: Mat4.inverse( matrix ), camera_inverse: matrix } )
-    }
+  }
+
+  //REMOVE
+  test_function( message )
+  {
+    console.log(message);
+  }
+  
+
+
+//   constructor( camera_transform = Mat4.identity(), projection_transform = Mat4.identity() ) 
+//     { super();
+      
+//       //Store info
+//       this.camera_translate = Mat4.identity();
+//       this.camera_pitch = Mat4.identity();
+//       this.camera_yaw = Mat4.identity();
+//       this.update_info( camera_transform );
+    
+//       this.set_camera( camera_transform );
+//       const defaults = { projection_transform, animate: true, animation_time: 0, animation_delta_time: 0 };
+//       Object.assign( this, defaults );  
+//     }
+//   set_camera( matrix )
+//     {                       // set_camera():  Applies a new (inverted) camera matrix to the Program_State.
+//                             // It's often useful to cache both the camera matrix and its inverse.  Both are needed
+//                             // often and matrix inversion is too slow to recompute needlessly.  
+//                             // Note that setting a camera matrix traditionally means storing the inverted version, 
+//                             // so that's the one this function expects to receive; it automatically sets the other.
+//       this.update_info( Mat4.inverse(matrix) );
+//       Object.assign( this, { camera_transform: Mat4.identity()
+//                                                 .times(this.camera_yaw)
+//                                                 .times(this.camera_translate)
+//                                                 .times(this.camera_pitch),
+//                              camera_inverse: matrix } )
+//     }
+
+//   update_info( camera_transform )
+//   {
+//       //Update the translation matrix
+//       this.camera_translate[0][3] = camera_transform[0][3];
+//       this.camera_translate[1][3] = camera_transform[1][3];
+//       this.camera_translate[2][3] = camera_transform[2][3];
+
+//       //Update the pitch and yaw matrices
+//       this.camera_pitch[1][1] = camera_transform[1][1];
+//       this.camera_pitch[1][2] = camera_transform[1][2];
+//       this.camera_pitch[2][1] = camera_transform[2][1];
+//       this.camera_pitch[2][2] = camera_transform[2][2];
+
+//       this.camera_yaw[0][0] = camera_transform[0][0];
+//       this.camera_yaw[0][2] = camera_transform[0][2];
+//       this.camera_yaw[2][0] = camera_transform[2][0];
+//       this.camera_yaw[2][2] = camera_transform[2][2];
+//   }
+
+//   translate_camera( translate_vec )
+//   {
+//       this.camera_translate[0][3] += translate_vec[0];
+//       this.camera_translate[1][3] += translate_vec[1];
+//       this.camera_translate[2][3] += translate_vec[2];
+    
+//       this.camera_inverse = Mat4.identity()
+//                                   .times(this.camera_pitch)
+//                                   .times(this.camera_translate)
+//                                   .times(this.camera_yaw);
+
+//       this.camera_translate[0][3] -= 2 * translate_vec[0];
+//       this.camera_translate[1][3] -= 2 * translate_vec[1];
+//       this.camera_translate[2][3] -= 2 * translate_vec[2];
+
+//       this.camera_transform = Mat4.identity()
+//                                   .times(this.camera_yaw)
+//                                   .times(this.camera_translate)
+//                                   .times(this.camera_pitch);
+//   }
 }
 
 
