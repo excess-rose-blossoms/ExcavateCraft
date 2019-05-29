@@ -38,8 +38,27 @@ export class Map{
   //block includes 'exposed' property
   insertBlock(coord, block){
     let chunk_coord = this.get_chunk_coord(coord);
-    this.frustrum.insertBlock(coord, block);
-    this.chunks[JSON.stringify(chunk_coord)][JSON.stringify(coord)] = block;
+    let chunk_coord_hash = JSON.stringify(chunk_coord);
+    let flag = {};
+    if(! this.chunks.hasOwnProperty(chunk_coord_hash)){
+      let chunk = localStorage.getItem(chunk_coord_hash);
+      if(!chunk){
+        chunk = {};
+      }else{
+        chunk = JSON.parse(chunk);
+      }
+      chunk[JSON.stringify(coord)] = {};
+      chunk[JSON.stringify(coord)].exposed = block.exposed;
+      let block_type = BLOCK_TYPES[chunk[world_coord_hash].block.constructor.name];
+      chunk[JSON.stringify(coord)].block = block_type;
+      chunk = JSON.stringify(chunk);
+      localStorage.setItem(chunk_coord_hash, chunk);
+    }else{
+      this.chunks[chunk_coord_hash][JSON.stringify(coord)] = block;
+      this.frustrum.insertBlock(coord, block);
+    }
+
+    
   }
   get(coord){
     let chunk_coord = this.get_chunk_coord(coord);
