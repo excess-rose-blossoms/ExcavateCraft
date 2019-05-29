@@ -1,4 +1,4 @@
-import {PerlinNoise} from './perlin.js';
+import {PerlinNoise} from './utils/perlin.js';
 
 const noise = new PerlinNoise();
 export function gen_tree(map, position, wood, leaf){

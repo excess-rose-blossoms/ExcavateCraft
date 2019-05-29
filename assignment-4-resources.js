@@ -593,8 +593,10 @@ class Movement_Controls extends Scene
                              speed_multiplier: 1, 
                              input_list: { w: false, a: false, s: false, d: false, space: false, z:false },
                              my_rot: Vec.of( 0,0,0 ),
-                             my_pos: Vec.of( 0,10,20 )
-                           };          
+                             my_pos: Vec.of( 0,10,20 ),
+                             sensitivity: 10
+                           };
+
       Object.assign( this, data_members );
 
       this.mouse_enabled_canvases = new Set();
@@ -639,9 +641,12 @@ class Movement_Controls extends Scene
                                    Vec.of( e.clientX - (rect.left + rect.right)/2, e.clientY - (rect.bottom + rect.top)/2 );
                                 // Set up mouse response.  The last one stops us from reacting if the mouse leaves the canvas:
       document.addEventListener( "mouseup",   e => { this.mouse.anchor = undefined; } );
-      canvas  .addEventListener( "mousedown", e => { e.preventDefault(); this.mouse.anchor      = mouse_position(e); } );
-      canvas  .addEventListener( "mousemove", e => { e.preventDefault(); this.mouse.from_center = mouse_position(e); } );
-      canvas  .addEventListener( "mouseout",  e => { if( !this.mouse.anchor ) this.mouse.from_center.scale(0) } );
+      document.addEventListener( "mousemove", e=>{ if(document.pointerLockElement === canvas) 
+                                                      this.mouse.from_center = [this.sensitivity*e.movementX, this.sensitivity* e.movementY]
+                                                      });
+      //canvas  .addEventListener( "mousedown", e => { e.preventDefault(); this.mouse.anchor      = mouse_position(e); } );
+      //canvas  .addEventListener( "mousemove", e => { e.preventDefault(); this.mouse.from_center = mouse_position(e); } );
+      //canvas  .addEventListener( "mouseout",  e => { if( !this.mouse.anchor ) this.mouse.from_center.scale(0) } );
     }
 
   show_explanation( document_element ) { }
@@ -703,8 +708,8 @@ class Movement_Controls extends Scene
     { 
 //       console.log("BEFORE")
 //       console.log(this.matrix());
-      const offsets_from_dead_box = { plus: [ this.mouse.from_center[0] + leeway, this.mouse.from_center[1] + leeway ],
-                                     minus: [ this.mouse.from_center[0] - leeway, this.mouse.from_center[1] - leeway ] }; 
+      const offsets_from_dead_box = { plus: [ this.mouse.from_center[0], this.mouse.from_center[1] ],
+                                     minus: [ this.mouse.from_center[0], this.mouse.from_center[1] ] }; 
                                                           // Apply a camera rotation movement, but only when the mouse is
                                                           // past a minimum distance (leeway) from the canvas's center:
       if( !this.look_around_locked )
@@ -713,8 +718,8 @@ class Movement_Controls extends Scene
         for( let i = 0; i < 2; i++ )
         {                                     // The &&'s in the next line might zero the vectors out:
           let o = offsets_from_dead_box,
-            velocity = ( ( o.minus[i] > 0 && o.minus[i] ) || ( o.plus[i] < 0 && o.plus[i] ) ) * radians_per_frame;
-                                              // On X step, rotate around Y axis, and vice versa.
+              velocity = ( ( o.minus[i] > 0 && o.minus[i] ) || ( o.plus[i] < 0 && o.plus[i] ) ) * radians_per_frame;                                // On X step, rotate around Y axis, and vice versa.
+          
           //this.matrix().post_multiply( Mat4.rotation( -velocity, Vec.of( i, 1-i, 0 ) ) );
           //this.inverse().pre_multiply( Mat4.rotation( +velocity, Vec.of( i, 1-i, 0 ) ) );
 
@@ -722,6 +727,7 @@ class Movement_Controls extends Scene
           if (i==0) { this.my_rot[1] = ((this.my_rot[1] + velocity) % (2 * Math.PI)); }
           //Store pitch (rotation around the x-axis) in radians
           else { this.my_rot[0] = ((this.my_rot[0] + velocity) % (2 * Math.PI)); }
+          this.mouse.from_center[i] = 0;
         }
                                     //Now apply translation movement of the camera, in the newest local coordinate frame.
       //Update the thrust vector according to the input list
@@ -852,6 +858,7 @@ class Old_Movement_Controls extends Scene
                                    Vec.of( e.clientX - (rect.left + rect.right)/2, e.clientY - (rect.bottom + rect.top)/2 );
                                 // Set up mouse response.  The last one stops us from reacting if the mouse leaves the canvas:
       document.addEventListener( "mouseup",   e => { this.mouse.anchor = undefined; } );
+      document.addEventListener( "mousemove", e => { console.log(e.movementX) } );
       canvas  .addEventListener( "mousedown", e => { e.preventDefault(); this.mouse.anchor      = mouse_position(e); } );
       canvas  .addEventListener( "mousemove", e => { e.preventDefault(); this.mouse.from_center = mouse_position(e); } );
       canvas  .addEventListener( "mouseout",  e => { if( !this.mouse.anchor ) this.mouse.from_center.scale(0) } );

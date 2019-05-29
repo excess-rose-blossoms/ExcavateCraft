@@ -19,7 +19,8 @@ class Not_Solar_System extends Scene{
   #input_manager;   
   #map;    
   #frustrum;
-  #mapGenerator;                              
+  #mapGenerator;
+  #seed;                              
   constructor(){                 
      super();
      this.#blocks = {
@@ -30,20 +31,22 @@ class Not_Solar_System extends Scene{
                     wood: new WoodBlock(),
                     leaf: new LeafBlock()
     };
+    this.#seed = 1000;
     this.#input_manager = new InputManager();
     this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks);
-    //this.#frustrum = new Frustrum(this);
-    this.#mapGenerator = new MapGenerator();
+    this.#mapGenerator = new MapGenerator(this.#seed);
+
     //gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
     this.#mapGenerator.generate_chunk([0,-1], this.#map, this.#blocks);
     this.#mapGenerator.generate_chunk([-1,-1], this.#map, this.#blocks);
+    this.#mapGenerator.generate_chunk([0,1], this.#map, this.#blocks);
 
     }
   make_control_panel(){     
                              
     }
   display( context, program_state )
-    {   
+    { 
       this.#input_manager.perform_action(context, program_state);
                            // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
       if( !context.scratchpad.controls ) 
