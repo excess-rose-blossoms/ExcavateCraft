@@ -1,4 +1,5 @@
-import {PerlinNoise} from './perlin.js';
+import {PerlinNoise} from './utils/perlin.js';
+import {Random} from './utils/random.js';
 
 export const CHUNK_SIZE = 16;
 const HEIGHT = 32;
@@ -6,8 +7,10 @@ const CHAOS = 15;
 
 export class MapGenerator{
   #noise;
+  #random;
   constructor(seed){
-    this.#noise = new PerlinNoise();
+    this.#random = new Random(seed);
+    this.#noise = new PerlinNoise(this.#random);
   };
   generate_chunk(chunk, map, blocks){
     let chunk_obj = {};
