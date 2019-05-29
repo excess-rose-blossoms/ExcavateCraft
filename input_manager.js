@@ -13,6 +13,8 @@ export class InputManager{
     context.canvas.onmousedown = e => {
       console.log("Clicke"); 
       this.#holdtime = new Date().getTime();
+      context.canvas.requestPointerLock();  
+
       };
     context.canvas.onmouseup = e => {
         console.log(new Date().getTime() - this.#holdtime);

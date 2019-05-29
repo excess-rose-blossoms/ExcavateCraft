@@ -46,7 +46,7 @@ class Not_Solar_System extends Scene{
                              
     }
   display( context, program_state )
-    {   
+    { 
       this.#input_manager.perform_action(context, program_state);
                            // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
       if( !context.scratchpad.controls ) 
