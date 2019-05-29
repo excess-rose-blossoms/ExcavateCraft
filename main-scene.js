@@ -32,9 +32,9 @@ class Not_Solar_System extends Scene{
     this.#map = new Map()
     this.#frustrum = new Frustrum(this);
     this.#mapGenerator = new MapGenerator();
-    //gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
-    this.#mapGenerator.generate_chunk([0,-1], this.#frustrum, this.#blocks);
-    this.#mapGenerator.generate_chunk([-1,-1], this.#frustrum, this.#blocks);
+    gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
+    //this.#mapGenerator.generate_chunk([0,-1], this.#frustrum, this.#blocks);
+    //this.#mapGenerator.generate_chunk([-1,-1], this.#frustrum, this.#blocks);
 
     }
   make_control_panel(){     
