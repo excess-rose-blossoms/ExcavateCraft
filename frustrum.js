@@ -8,9 +8,8 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 
 export class Frustrum
 {
-  constructor(scene){
-    this.scene = scene;
-    this.map = scene.map;
+  constructor(map){
+    this.map = map;
     this.view_box_normalized = Vec.cast( [-1, -1, -1],  [1,  -1, -1],  [-1, 1, -1],  [1,  1, -1],  
                                       [-1, -1, 1],   [1,  -1, 1],   [-1, 1, 1],   [1,  1, 1]  );
     this.corner_points = [];
@@ -18,23 +17,45 @@ export class Frustrum
   }
 
   insertBlock(coord, block){
+    this.block_tree.delete(Vec.of(...coord));
     this.block_tree.insert(Vec.of(...coord), block);
   }
 
+  deleteBlock(coord){
+    this.block_tree.delete(Vec.of(...coord));
+  }
   derive_frustum_points_from_matrix( m, points )
     { return points.map( p => Mat4.inverse( m ).times( p.to4(1) ) )    // Apply the linear part to the points cube.
                    .map( p => p.map( x => x/p[3] ).to3() );            // Manually do a perspective division
     }
   
 
-  should_draw(coord){
+  should_draw(coord, block){
     for(var i =0; i < 6; i++){
       if(! this.planes[i].on_correct_side(coord)){
         return false;
       }
     }
-    
+//     if(!block){
+//       return false;
+//     }
+//     let num_adjacent = 0;
+//     for(var i in [-1, 1]){
+//       for(var j in [-1, 1]){
+//         let adjacent = this.map.get(Vec.of(coord[0] + i, coord[1] + j));
+//         if(adjacent && adjacent.block){
+//           num_adjacent++;
+//         }
+//       }
+//     }
+//     if(num_adjacent >= 4){
+//       return false;
+//     }
+    if(!block.exposed){
+      return false;
+    }
     return true;
+     
   }
   
   get_planes(){
@@ -102,8 +123,9 @@ export class Frustrum
       return;
     }
     this.inOrder(root.left, leastCoord, mostCoord);
-    if(this.should_draw(root.key)){
-      root.value.draw(this.context, this.program_state, Mat4.identity().times(Mat4.translation(root.key)));
+    if(this.should_draw(root.key, root.value)){
+      if(root.value.block)
+        root.value.block.draw(this.context, this.program_state, Mat4.identity().times(Mat4.translation(root.key)));
       //console.log(this.corner_points);
     }
     this.inOrder(root.right, leastCoord, mostCoord);

@@ -3,6 +3,32 @@ import {defs, tiny} from './assignment-4-resources.js';
 const {Texture, Material} = tiny;
 const shader = new defs.Textured_Phong(2);
 const material = new Material(shader, {ambient: .4, diffusivity: .4, specularity: .4, color: tiny.Color.of(.3,.3,.3,1)})
+export const BLOCK_TYPES = {
+    "GrassBlock": 0,
+    "BrickBlock": 1,
+    "StoneBlock": 2,
+    "SandBlock": 3,
+    "WoodBlock": 4,
+    "LeafBlock": 5
+}; 
+
+export const BLOCK_TYPES_INV = {
+    0: "GrassBlock",
+    1: "BrickBlock",
+    2: "StoneBlock",
+    3: "SandBlock",
+    4: "WoodBlock",
+    5: "LeafBlock"
+}; 
+
+export const BLOCK_CONVERTER = {
+  "GrassBlock": "grass",
+    "BrickBlock": "brick",
+    "StoneBlock": "stone",
+    "SandBlock": "sand",
+    "WoodBlock": "wood",
+    "LeafBlock": "leaf"
+};
 export class Block extends defs.Cube{
     constructor(){
         super();
