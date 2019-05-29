@@ -1,5 +1,6 @@
 import {tiny, defs} from './assignment-4-resources.js';
 import {Frustrum} from './frustrum.js';
+import {Map} from './hash.js';
 import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock} from './blocks.js';
                                                                 // Pull these names into this module's scope for convenience:
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
@@ -9,8 +10,6 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 const Main_Scene =
 
 class Not_Solar_System extends Scene{      
-      this.frustrum = new Frustrum()
-
   #blocks;  
   #materials;                                     
   constructor(){                 
@@ -23,6 +22,26 @@ class Not_Solar_System extends Scene{
                     wood: new WoodBlock(),
                     leaf: new LeafBlock()
   };
+  this.map = new Map(16, 6, this.#blocks);
+  for(var x = -5; x < 5; x++){
+    for(var z = -5; z < 5; z++){
+      let chunk_coord = [x, z];
+      let chunk = {};
+      for(var xw = 0; xw < 16; xw++){
+        for(var zw = 0; zw < 16; zw++){
+          var x_fin = 16 * (x+(x<0?1:0)) + ((x < 0?-1:1) * xw - (x < 0?1:0));
+          var z_fin = 16 * (z+(z<0?1:0)) + ((z < 0?-1:1) * zw - (z < 0?1:0));
+          var coord_hash = JSON.stringify([x_fin, 0, z_fin]);
+          chunk[coord_hash] = {
+            'block': this.#blocks.grass, 
+            'exposed': true
+          };          
+        }
+      }
+      this.map.insert_chunk(chunk_coord, chunk);
+    }
+  }
+
     }
   make_control_panel(){     
                              
@@ -44,7 +63,7 @@ class Not_Solar_System extends Scene{
                     // treated when projecting 3D points onto a plane.  The Mat4 functions perspective() and
                     // orthographic() automatically generate valid matrices for one.  The input arguments of
                     // perspective() are field of view, aspect ratio, and distances to the near plane and far plane.          
-          program_state.set_camera( Mat4.look_at( Vec.of( 0,10,20 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ) );
+          program_state.set_camera( Mat4.look_at( Vec.of( 0,3,0 ), Vec.of( 0,3,1 ), Vec.of( 0,1,0 ) ) );
           this.initial_camera_location = program_state.camera_inverse;
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 200 );
         }
@@ -53,21 +72,25 @@ class Not_Solar_System extends Scene{
                                                                       // time as an input when calculating new transforms:
       const t = program_state.animation_time / 1000;
       
-      this.frustrum.draw(context, program_state);
+      
       
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
 
       let model_transform = Mat4.identity();
       
-      this.#blocks.grass.draw( context, program_state, model_transform);
-      this.#blocks.brick.draw(context, program_state, model_transform.times(Mat4.translation([1,0,0])));
-      this.#blocks.stone.draw(context, program_state, model_transform.times(Mat4.translation([-1,0,0])));
-      this.#blocks.sand.draw(context, program_state, model_transform.times(Mat4.translation([0,0,-1])));
-      this.#blocks.wood.draw(context, program_state, model_transform.times(Mat4.translation([1,1,-1])));
-      this.#blocks.leaf.draw(context, program_state, model_transform.times(Mat4.translation([-1,1,-1])));
-
+//       this.#blocks.grass.draw( context, program_state, model_transform);
+//       this.#blocks.brick.draw(context, program_state, model_transform.times(Mat4.translation([1,0,0])));
+//       this.#blocks.stone.draw(context, program_state, model_transform.times(Mat4.translation([-1,0,0])));
+//       this.#blocks.sand.draw(context, program_state, model_transform.times(Mat4.translation([0,0,-1])));
+//       this.#blocks.wood.draw(context, program_state, model_transform.times(Mat4.translation([1,1,-1])));
+//       this.#blocks.leaf.draw(context, program_state, model_transform.times(Mat4.translation([-1,1,-1])));
+      
+      
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
 
+
+      //this.frustrum.draw(context, program_state);
+      this.map.draw(context, program_state);
       model_transform = Mat4.identity();
       
       this.#blocks.grass.draw( context, program_state, model_transform);
