@@ -51,7 +51,7 @@ class Not_Solar_System extends Scene{
                            // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
       if( !context.scratchpad.controls ) 
       {                       // Add a movement controls panel to the page:
-          this.children.push( context.scratchpad.controls = new defs.Movement_Controls() ); 
+          this.children.push( context.scratchpad.controls = new defs.Movement_Controls(this.#map) );
 
           // Add a helper scene / child scene that allows viewing each moving body up close.
           // Define the global camera and projection matrices, which are stored in program_state.  The camera
@@ -61,7 +61,8 @@ class Not_Solar_System extends Scene{
           // orthographic() automatically generate valid matrices for one.  The input arguments of
           // perspective() are field of view, aspect ratio, and distances to the near plane and far plane.   
                           
-          program_state.set_camera( Mat4.look_at( Vec.of( 0,10,20 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ) );
+          program_state.set_camera( Mat4.look_at( Vec.of( 0,10,10 ), Vec.of( 0,100,0 ), Vec.of( 100,100,100 ) ) );
+
           this.initial_camera_location = program_state.camera_inverse;
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 200 );
       }

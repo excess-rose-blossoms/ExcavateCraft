@@ -155,6 +155,20 @@ export class Map{
     return true;
   }
 
+  // FAST RAYCAST: Takes a single direction and raycasts to the first nearest block
+  fast_raycast(position, direction, depth){
+    for(var i = 1; i<=depth; i++){
+      let newpos = [Math.floor(position[0]+direction[0]*i), 
+                    Math.floor(position[1]+direction[1]*i), 
+                    Math.floor(position[2]+direction[2]*i)];
+      let block = this.get(newpos);
+      if(block !== null){
+        return block;
+      }
+    }
+    return null;
+  }
+
   draw(context, program_state){
     let cam_pos = program_state.camera_transform.map(row => row[3]);
     this.new_position = this.get_chunk_coord(cam_pos);
