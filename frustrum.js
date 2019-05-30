@@ -141,7 +141,7 @@ class Plane{
     this.point = point;
   }
   on_correct_side(coord){
-    if(coord.minus(this.point).dot(this.normal) < 0){
+    if(coord.minus(this.point).dot(this.normal) < -0.8){
       return false;
     }
     return true;
