@@ -594,7 +594,7 @@ class Movement_Controls extends Scene
                              speed_multiplier: 1, 
                              input_list: { w: false, a: false, s: false, d: false, space: false, z:false },
                              my_rot: Vec.of( 0,0,0 ),
-                             my_pos: Vec.of( 7,20,-7 ),
+                             my_pos: Vec.of( 7,40,-7 ),
                              sensitivity: 10,
                              direction_map: [[1,0,0], [0,1,0], [0,0,1]],
                              negative_direction_map: [[-1,0,0], [0,-1,0], [0,0,-1]]
@@ -744,9 +744,18 @@ class Movement_Controls extends Scene
       relative_thrust[1] = this.thrust[1];
       relative_thrust[2] =  (-this.thrust[0] * Math.sin(-this.my_rot[1])) + (this.thrust[2] * Math.cos(-this.my_rot[1]));
 
-      if(relative_thrust[0] < 0 && this.map.fast_raycast(this.my_pos, this.direction_map[0], 2) === null)
+      ////////////////////////////
+      // BEGIN COLLISION DETECTION
+      ////////////////////////////
+
+      let feet = [this.my_pos[0], this.my_pos[1]-1, this.my_pos[2]];
+      if(relative_thrust[0] < 0 && 
+          this.map.fast_raycast(this.my_pos, this.direction_map[0], 1) === null && 
+          this.map.fast_raycast(feet, this.direction_map[0], 2) === null)
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
-      else if(relative_thrust[0] > 0 && this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 2) === null)
+      else if(relative_thrust[0] > 0 && 
+              this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 1) === null &&
+              this.map.fast_raycast(feet, this.negative_direction_map[0], 2) === null )
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
       
       // Special treatment for Y axis, as it needs to set thrust negative
@@ -759,10 +768,18 @@ class Movement_Controls extends Scene
         this.my_pos[1] -= relative_thrust[1] * meters_per_frame + meters_per_frame;
       
       
-      if(relative_thrust[2] < 0 && this.map.fast_raycast(this.my_pos, this.direction_map[2], 2) === null)
+      if(relative_thrust[2] < 0 && 
+         this.map.fast_raycast(this.my_pos, this.direction_map[2], 1) === null &&
+         this.map.fast_raycast(feet, this.direction_map[2], 2) === null)
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
-      else if(relative_thrust[2] > 0 && this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 2) === null)
+      else if(relative_thrust[2] > 0 && 
+              this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 1) === null &&
+              this.map.fast_raycast(feet, this.negative_direction_map[2], 2) === null)
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
+      
+      //////////////////////////
+      // END COLLISION DETECTION
+      //////////////////////////
 
       this.recompute_cam_matrices();
 

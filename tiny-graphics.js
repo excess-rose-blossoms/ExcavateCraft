@@ -855,7 +855,9 @@ class Webgl_Manager
                
       gl.clearColor.apply( gl, background_color );           // Tell the GPU which color to clear the canvas with each frame.
       gl.getExtension( "OES_element_index_uint" );           // Load an extension to allow shapes with more than 65535 vertices.
-      gl.enable( gl.DEPTH_TEST );                            // Enable Z-Buffering test.
+      gl.enable( gl.DEPTH_TEST );
+      gl.enable(gl.CULL_FACE);
+      gl.cullFace(gl.BACK);                            // Enable Z-Buffering test.;
                         // Specify an interpolation method for blending "transparent" triangles over the existing pixels:
       gl.enable( gl.BLEND );
       gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );           

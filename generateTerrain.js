@@ -3,7 +3,7 @@ import {Random} from './utils/random.js';
 
 export const CHUNK_SIZE = 16;
 const HEIGHT = 32;
-const CHAOS = 15;
+const CHAOS = 100;
 
 export class MapGenerator{
   #noise;
