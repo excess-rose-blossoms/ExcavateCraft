@@ -32,23 +32,16 @@ class Not_Solar_System extends Scene{
                     leaf: new LeafBlock(),
                     bedrock: new BedrockBlock()
     };
-    this.#seed = 1001;
+
+    let seed = localStorage.getItem('seed');
+    if(! seed)
+      this.#seed = new Date().getTime();
+    else
+      this.#seed = seed;
+    localStorage.clear();
     this.#input_manager = new InputManager();
     this.#mapGenerator = new MapGenerator(this.#seed);
     this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks, this.#mapGenerator);
-/*
-    //this.#mapGenerator.generate_chunk([0,0], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([0,0], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([0,1], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([0,-1], this.#map, this.#blocks);
-
-    this.#mapGenerator.generate_chunk([1,0], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([1,1], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([1,-1], this.#map, this.#blocks);  
-    this.#mapGenerator.generate_chunk([-1,0], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([-1,1], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([-1,-1], this.#map, this.#blocks);   
-*/
     }
   make_control_panel(){     
                              
@@ -69,7 +62,7 @@ class Not_Solar_System extends Scene{
           // orthographic() automatically generate valid matrices for one.  The input arguments of
           // perspective() are field of view, aspect ratio, and distances to the near plane and far plane.   
                           
-          program_state.set_camera( Mat4.look_at( Vec.of( 0,10,10 ), Vec.of( 0,100,0 ), Vec.of( 100,100,100 ) ) );
+          program_state.set_camera( Mat4.look_at( Vec.of( 0,10,10 ), Vec.of( 0,-180,0 ), Vec.of( 100,100,100 ) ) );
 
           this.initial_camera_location = program_state.camera_inverse;
           program_state.projection_transform = Mat4.perspective( Math.PI/4, context.width/context.height, 1, 200 );

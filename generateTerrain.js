@@ -38,7 +38,7 @@ export class MapGenerator{
           let perlin = this.#noise.noise((x+chunk[0] * CHUNK_SIZE)/CHAOS, 
                                          y/CHAOS,
                                          (z+chunk[1]*CHUNK_SIZE)/CHAOS);
-          if(2*perlin + (.7 - 5*y/HEIGHT)> 0){
+          if(2*perlin + (.5 - 5*y/HEIGHT)> 0){
             my_chunk[x+1][y][z+1] = {
               'block': blocks.grass, 
               'exposed': true

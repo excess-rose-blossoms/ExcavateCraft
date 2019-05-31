@@ -178,6 +178,30 @@ export class Map{
     return null;
   }
 
+  // returns an integer that is the encoded representation of the block, position and exposed data
+  encode_block(blocktype, x, y, z, exposed){
+	result = 0;
+	let e_val = 0;
+	if(exposed)
+		e_val = 1;
+	result = (blocktype & 0x1f) << 20 | 
+			 (x & 0xf) << 16 | 
+			 (y & 0x3f) << 11 | 
+			 (z & 0xf) << 5 |
+			 e_val;
+	return result;
+}
+
+  // Returns an array with [blocktype, x coordinate, y coordinate, z coordinate, exposed boolean]
+  decode_block(value){
+	let blocktype = (value >>> 20) & 0x1f;
+	let x = (value >>> 16) & 0xf;
+	let y = (value >>> 11) & 0x3f;
+	let z = (value >>> 5) & 0xf;
+	let e_val = value & 1 == 1;
+	return [blocktype, x, y, z, e_val];
+  }
+
   draw(context, program_state){
     let cam_pos = program_state.camera_transform.map(row => row[3]);
     this.new_position = this.get_chunk_coord(cam_pos);
