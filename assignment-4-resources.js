@@ -572,16 +572,18 @@ class Fake_Bump_Map extends Textured_Phong
     }
 }
 
+// **Movement_Controls** is a Scene that can be attached to a canvas, like any other
+// Scene, but it is a Secondary Scene Component -- meant to stack alongside other 
+// scenes.  Rather than drawing anything it embeds both first-person and third-
+// person style controls into the website.  These can be used to manually move your
+// camera or other objects smoothly through your scene using key, mouse, and HTML
+// button controls to help you explore what's in it.
+
 const Movement_Controls = defs.Movement_Controls =
 class Movement_Controls extends Scene
-{                                       // **Movement_Controls** is a Scene that can be attached to a canvas, like any other
-                                        // Scene, but it is a Secondary Scene Component -- meant to stack alongside other 
-                                        // scenes.  Rather than drawing anything it embeds both first-person and third-
-                                        // person style controls into the website.  These can be used to manually move your
-                                        // camera or other objects smoothly through your scene using key, mouse, and HTML
-                                        // button controls to help you explore what's in it.
+{                                       
   constructor(map)
-    { 
+  { 
       super();
       this.map = map;
       const data_members = { 
@@ -613,45 +615,47 @@ class Movement_Controls extends Scene
 
       this.mouse_enabled_canvases = new Set();
       this.will_take_over_graphics_state = true;
-    }
+  }
 
   //Helper function that sets a 4x4 matrix equal to another matrix because I can't get the other one to work LOL
-  set_4x4_matrix( input_mat, desired_mat ){ for ( let i=0; i<4; i++ ) {for ( let j = 0; j<4; j++ ) { input_mat[i][j] = desired_mat[i][j]; }}}
 
-  set_recipient( matrix_closure, inverse_closure, projection_closure )
-    {                               // set_recipient(): The camera matrix is not actually stored here inside Movement_Controls;
-                                    // instead, track an external target matrix to modify.  Targets must be pointer references
-                                    // made using closures.
+  set_4x4_matrix( input_mat, desired_mat )
+  {
+    for ( let i=0; i<4; i++ ) { for ( let j = 0; j<4; j++ ) { input_mat[i][j] = desired_mat[i][j]; } }
+  }
+
+  //Track an external target matrix to modify.  Targets must be pointer references made using closures
+  set_recipient( matrix_closure, inverse_closure )
+  {                               
       this.matrix  =  matrix_closure;
       this.inverse = inverse_closure;
-      this.projection = projection_closure;
-    }
+  }
+
+
+  //Call set_recepient using the camera transform and camera inverse stored in program_state (graphics_state here)
   reset( graphics_state )
-  {                         // reset(): Initially, the default target is the camera matrix that Shaders use, stored in the
-                              // encountered program_state object.  Targets must be pointer references made using closures.
+  {                         
       this.set_recipient( () => graphics_state.camera_transform, 
-                          () => graphics_state.camera_inverse,
-                          () => graphics_state.projection_transform
-                        );
+                          () => graphics_state.camera_inverse, );
   }
   
-  
+  //Attach HTML mouse events to the drawing canvas
   add_mouse_controls( canvas )
-    {                                       // add_mouse_controls():  Attach HTML mouse events to the drawing canvas.
-                                            // First, measure mouse steering, for rotating the flyaround camera:
+  {                                      
+      //Measure mouse steering, for rotating the flyaround camera:
       this.mouse = { "from_center": Vec.of( 0,0 ) };
       const mouse_position = ( e, rect = canvas.getBoundingClientRect() ) => 
-                                   Vec.of( e.clientX - (rect.left + rect.right)/2, e.clientY - (rect.bottom + rect.top)/2 );
-                                // Set up mouse response.  The last one stops us from reacting if the mouse leaves the canvas:
+                               Vec.of( e.clientX - (rect.left + rect.right)/2, e.clientY - (rect.bottom + rect.top)/2 );
+
+      // Set up mouse response
       document.addEventListener( "mouseup",   e => { this.mouse.anchor = undefined; } );
       document.addEventListener( "mousemove", e=>{ if(document.pointerLockElement === canvas) 
-                                                      this.mouse.from_center = [this.sensitivity*e.movementX, this.sensitivity* e.movementY]
-                                                      });
-    }
+                                                   this.mouse.from_center = [this.sensitivity*e.movementX, this.sensitivity* e.movementY] });
+  }
 
   show_explanation( document_element ) { }
 
-  //Based on the input list, assign the appropriate values to the thrust (velocity) array.
+  //Based on an input list, assign the appropriate values to the thrust (velocity) vector
   resolve_thrust( input_list )
   {
     //Forward motion
@@ -673,8 +677,10 @@ class Movement_Controls extends Scene
   {
     this.input_list.space = false;
     this.space_released = true;
+
   }
 
+  //Set up key-bindings
   make_control_panel()
   {                                 
       this.key_triggered_button( "Freeze mouse look around", [ "f" ], () => this.look_around_locked ^=  1, "green" );
@@ -689,6 +695,7 @@ class Movement_Controls extends Scene
       //this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  );    
   }
 
+  //Re-calculate the camera transform and camera inverse matrices
   recompute_cam_matrices()
   {    
     //Camera_transform
@@ -701,34 +708,35 @@ class Movement_Controls extends Scene
     let cam_i = Mat4.identity()
                     .times(Mat4.rotation( this.my_rot[0], Vec.of(1,0,0)))                   //Pitch  
                     .times( Mat4.rotation( this.my_rot[1], Vec.of(0,1,0)) )//Yaw
+
                     .times( Mat4.translation(Vec.of(-this.my_pos[0],-this.my_pos[1],-this.my_pos[2])) );  //Translation
-               
-    this.set_4x4_matrix( this.matrix(), cam_t );
     this.set_4x4_matrix( this.inverse(), cam_i );
   }
     
+  //Handle movement and looking around
   first_person_flyaround( radians_per_frame, meters_per_frame, leeway = 70 )
     { 
 
+      //Record how far the mouse is from the center.
       const offsets_from_dead_box = { plus: [ this.mouse.from_center[0], this.mouse.from_center[1] ],
                                      minus: [ this.mouse.from_center[0], this.mouse.from_center[1] ] }; 
-                                                          // Apply a camera rotation movement, but only when the mouse is
-                                                          // past a minimum distance (leeway) from the canvas's center:
+
+      //Rotate the camera based on how far the mouse is from the center
       if( !this.look_around_locked )
-                                              //If steering, steer according to "mouse_from_center" vector, but don't
-                                              //start increasing until outside a leeway window from the center.                                          
+      {                                                                             
         for( let i = 0; i < 2; i++ )
         {                                  
           let o = offsets_from_dead_box,
               velocity = ( ( o.minus[i] > 0 && o.minus[i] ) || ( o.plus[i] < 0 && o.plus[i] ) ) * radians_per_frame;
-
           //Store yaw (rotation around the y-axis) in radians
           if (i==0) { this.my_rot[1] = ((this.my_rot[1] + velocity) % (2 * Math.PI)); }
+
           //Store pitch (rotation around the x-axis) in radians
           else { this.my_rot[0] = ((this.my_rot[0] + velocity) % (2 * Math.PI)); }
           this.mouse.from_center[i] = 0;
         }
-                                    //Now apply translation movement of the camera, in the newest local coordinate frame.
+      }
+                                    
       //Update the thrust vector according to the input list
       this.resolve_thrust( this.input_list );
 
@@ -747,12 +755,14 @@ class Movement_Controls extends Scene
       if(relative_thrust[0] < 0 && 
           this.map.fast_raycast(this.my_pos, this.direction_map[0], 1) === null && 
           this.map.fast_raycast(feet, this.direction_map[0], 2) === null)
+
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
       else if(relative_thrust[0] > 0 && 
               this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 1) === null &&
               this.map.fast_raycast(feet, this.negative_direction_map[0], 2) === null )
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
       
+      //Y axis
       // Special treatment for Y axis, as it needs to set thrust negative
 
       //Check if one is eligible to jump
@@ -803,6 +813,7 @@ class Movement_Controls extends Scene
       if(relative_thrust[2] < 0 && 
          this.map.fast_raycast(this.my_pos, this.direction_map[2], 1) === null &&
          this.map.fast_raycast(feet, this.direction_map[2], 2) === null)
+
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
       else if(relative_thrust[2] > 0 && 
               this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 1) === null &&
@@ -813,6 +824,7 @@ class Movement_Controls extends Scene
       // END COLLISION DETECTION
       //////////////////////////
 
+      //Recompute and set the camera transform and camera inverse matrices.
       this.recompute_cam_matrices();
     }
 
