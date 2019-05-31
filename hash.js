@@ -8,7 +8,7 @@ const MIN_CHUNKS_TO_SHOW = 1;
 
 
 export class Map{
-  constructor(chunk_size, num_chunks, blocks){
+  constructor(chunk_size, num_chunks, blocks, generator){
     this.chunks = {};
     this.chunk_size = chunk_size;
     this.num_chunks = num_chunks;
@@ -16,6 +16,7 @@ export class Map{
     this.blocks = blocks;
     this.check_chunks_flag = true;
     this.num_showing = 0;
+    this.generator = generator;
     
   }
   get_chunk_coord(coord){
@@ -102,8 +103,10 @@ export class Map{
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     let chunk_temp = localStorage.getItem(chunk_coord_hash);
     if(! chunk_temp){
-      return false;
+      this.generator.generate_chunk(chunk_coord, this, this.blocks);
+      chunk_temp = localStorage.getItem(chunk_coord_hash);
     }
+      
     chunk_temp = JSON.parse(chunk_temp);
     let chunk = {};
     for(var world_coord_hash in chunk_temp){
@@ -149,7 +152,7 @@ export class Map{
 
   // Delete a chunk from localStorage
   delete_chunk_from_disk(chunk_coord){
-    let chunk_coord_hash = JSON.stringify(chunk_coord);
+    let chunk_coord_hash = JSON.stringify( chunk_coord);
     localStorage.removeItem(chunk_coord);
   }
   

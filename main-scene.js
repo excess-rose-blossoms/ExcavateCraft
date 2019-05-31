@@ -34,11 +34,9 @@ class Not_Solar_System extends Scene{
     };
     this.#seed = 1001;
     this.#input_manager = new InputManager();
-    this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks);
     this.#mapGenerator = new MapGenerator(this.#seed);
-    this.#map.delete_chunk_from_disk([0,-1]);
-    this.#map.delete_chunk_from_disk([0,1]);
-    this.#map.delete_chunk_from_disk([0,0]);
+    this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks, this.#mapGenerator);
+/*
     //this.#mapGenerator.generate_chunk([0,0], this.#map, this.#blocks);
     this.#mapGenerator.generate_chunk([0,0], this.#map, this.#blocks);
     this.#mapGenerator.generate_chunk([0,1], this.#map, this.#blocks);
@@ -50,7 +48,7 @@ class Not_Solar_System extends Scene{
     this.#mapGenerator.generate_chunk([-1,0], this.#map, this.#blocks);
     this.#mapGenerator.generate_chunk([-1,1], this.#map, this.#blocks);
     this.#mapGenerator.generate_chunk([-1,-1], this.#map, this.#blocks);   
-
+*/
     }
   make_control_panel(){     
                              

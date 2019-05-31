@@ -19,7 +19,7 @@ export class MapGenerator{
     return [nx, y, nz];
   }
 
-  
+
   generate_chunk(chunk, map, blocks){
     let my_chunk = []
     for(var x = 0; x < CHUNK_SIZE + 2; x++){
@@ -79,6 +79,7 @@ export class MapGenerator{
     }
 
     map.insert_chunk(chunk, chunk_obj);
+    return chunk_obj;
   }
 
   block_is_exposed(chunk_data, x, y, z){
