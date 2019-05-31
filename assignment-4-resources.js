@@ -797,7 +797,7 @@ class Movement_Controls extends Scene
         this.my_pos[1] -= relative_thrust[1] * meters_per_frame;
       
       else if(this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null)
-        this.my_pos[1] -= relative_thrust[1] * meters_per_frame + meters_per_frame;
+        this.my_pos[1] -= relative_thrust[1] * meters_per_frame;// + meters_per_frame;
       
       
       if(relative_thrust[2] < 0 && 

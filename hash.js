@@ -21,8 +21,8 @@ export class Map{
   get_chunk_coord(coord){
     coord = [coord[0], coord[2]];
     //let chunk_coord = coord.map(c => (c<0?-1:1)* Math.floor((c<0?-1:1) * c / this.chunk_size)  - (c<0?1:0));
-    let chunk_coord = coord.map(c => Math.floor( c / this.chunk_size) );
-    return chunk_coord;
+    return coord.map(c => Math.floor( c / this.chunk_size) );
+    //return chunk_coord;
   }
 
   //*********************************************
@@ -145,6 +145,12 @@ export class Map{
     }
     table = JSON.stringify(table);
     localStorage.setItem(chunk_coord_hash, table);
+  }
+
+  // Delete a chunk from localStorage
+  delete_chunk_from_disk(chunk_coord){
+    let chunk_coord_hash = JSON.stringify(chunk_coord);
+    localStorage.removeItem(chunk_coord);
   }
   
   is_in_bounds(chunk_coord, bounds){
