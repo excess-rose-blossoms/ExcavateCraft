@@ -586,21 +586,29 @@ class Movement_Controls extends Scene
   { 
       super();
       this.map = map;
-      const data_members = { roll: 0, 
-                             look_around_locked: false, 
-                             thrust: Vec.of( 0,0,0 ), 
-                             pos: Vec.of( 0,0,0 ), 
-                             z_axis: Vec.of( 0,0,0 ),
+      const data_members = { 
                              radians_per_frame: 1/200, 
-                             meters_per_frame: 20, 
+                             meters_per_frame: 20,
+                             sensitivity: 10, 
                              speed_multiplier: 1, 
-                             input_list: { w: false, a: false, s: false, d: false, space: false, z:false },
-                             my_rot: Vec.of( 0,0,0 ),
-                             my_pos: Vec.of( 7,20,-7 ),
-                             sensitivity: 10,
+                             jump_force: 1,
+                             total_jump_time: 200,
                              direction_map: [[1,0,0], [0,1,0], [0,0,1]],
-                             negative_direction_map: [[-1,0,0], [0,-1,0], [0,0,-1]]
+                             negative_direction_map: [[-1,0,0], [0,-1,0], [0,0,-1]],  
+                             
+                             input_list: { w: false, a: false, s: false, d: false, space: false },
+                             grounded: false,
+                             space_released: true,
+                             is_jumping: false, 
+                             time_since_jump: 0.0,
+                             jump_time: 0.0,
+                             thrust: Vec.of( 0,0,0 ), 
+                             my_rot: Vec.of( 0,0,0 ),
+                             my_pos: Vec.of( 7,40,-7 ),
 
+                             look_around_locked: false,
+                             pos: Vec.of( 0,0,0 ), 
+                             z_axis: Vec.of( 0,0,0 )
                            };
 
       Object.assign( this, data_members );
@@ -610,6 +618,7 @@ class Movement_Controls extends Scene
   }
 
   //Helper function that sets a 4x4 matrix equal to another matrix because I can't get the other one to work LOL
+
   set_4x4_matrix( input_mat, desired_mat )
   {
     for ( let i=0; i<4; i++ ) { for ( let j = 0; j<4; j++ ) { input_mat[i][j] = desired_mat[i][j]; } }
@@ -660,9 +669,15 @@ class Movement_Controls extends Scene
     else { this.thrust[0] = 0; }
 
     //Vertical motion
-    //if (input_list.space && !input_list.z) { this.thrust[1] = -1; } 
-    //else if (!input_list.space && input_list.z) { this.thrust[1] = 1; }
-    //else { this.thrust[1] = 0; }
+     if (input_list.space) { this.thrust[1] = 1; } 
+     else { this.thrust[1] = 0; }
+  }
+
+  reset_jump()
+  {
+    this.input_list.space = false;
+    this.space_released = true;
+
   }
 
   //Set up key-bindings
@@ -670,14 +685,14 @@ class Movement_Controls extends Scene
   {                                 
       this.key_triggered_button( "Freeze mouse look around", [ "f" ], () => this.look_around_locked ^=  1, "green" );
       this.new_line();
-      this.key_triggered_button( "Up",     [ " " ], () => this.input_list.space = true, undefined, () => this.input_list.space = false );
+      this.key_triggered_button( "Jump",     [ " " ], () => this.input_list.space = true, undefined, () => this.reset_jump() );
       this.key_triggered_button( "Forward",[ "w" ], () => this.input_list.w = true, undefined, () => this.input_list.w = false );      
       this.new_line();
       this.key_triggered_button( "Left",   [ "a" ], () => this.input_list.a = true, undefined, () => this.input_list.a = false );     
       this.key_triggered_button( "Back",   [ "s" ], () => this.input_list.s = true, undefined, () => this.input_list.s = false );     
       this.key_triggered_button( "Right",  [ "d" ], () => this.input_list.d = true, undefined, () => this.input_list.d = false );     
       this.new_line();
-      this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  );    
+      //this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  );    
   }
 
   //Re-calculate the camera transform and camera inverse matrices
@@ -685,15 +700,15 @@ class Movement_Controls extends Scene
   {    
     //Camera_transform
     let cam_t = Mat4.identity()
-                    .times( Mat4.translation(Vec.of(this.my_pos[0],this.my_pos[1],this.my_pos[2])) )      //Translation
-                    .times( Mat4.rotation( -this.my_rot[1], Vec.of(0,1,0)) )                              //Yaw
-                    .times( Mat4.rotation( -this.my_rot[0], Vec.of(1,0,0)) );                             //Pitch
-    this.set_4x4_matrix( this.matrix(), cam_t );
+                    .times( Mat4.translation(Vec.of(this.my_pos[0],this.my_pos[1],this.my_pos[2])) )     //Translation
+                    .times( Mat4.rotation( -this.my_rot[1], Vec.of(0,1,0)) )                                  //Yaw
+                    .times( Mat4.rotation( -this.my_rot[0], Vec.of(1,0,0)) ); //Pitch
 
     //Camera_inverse
     let cam_i = Mat4.identity()
-                    .times(Mat4.rotation( this.my_rot[0], Vec.of(1,0,0)))                                 //Pitch  
-                    .times( Mat4.rotation( this.my_rot[1], Vec.of(0,1,0)) )                               //Yaw
+                    .times(Mat4.rotation( this.my_rot[0], Vec.of(1,0,0)))                   //Pitch  
+                    .times( Mat4.rotation( this.my_rot[1], Vec.of(0,1,0)) )//Yaw
+
                     .times( Mat4.translation(Vec.of(-this.my_pos[0],-this.my_pos[1],-this.my_pos[2])) );  //Translation
     this.set_4x4_matrix( this.inverse(), cam_i );
   }
@@ -701,6 +716,7 @@ class Movement_Controls extends Scene
   //Handle movement and looking around
   first_person_flyaround( radians_per_frame, meters_per_frame, leeway = 70 )
     { 
+
       //Record how far the mouse is from the center.
       const offsets_from_dead_box = { plus: [ this.mouse.from_center[0], this.mouse.from_center[1] ],
                                      minus: [ this.mouse.from_center[0], this.mouse.from_center[1] ] }; 
@@ -711,8 +727,7 @@ class Movement_Controls extends Scene
         for( let i = 0; i < 2; i++ )
         {                                  
           let o = offsets_from_dead_box,
-                  velocity = ( ( o.minus[i] > 0 && o.minus[i] ) || ( o.plus[i] < 0 && o.plus[i] ) ) * radians_per_frame; 
-
+              velocity = ( ( o.minus[i] > 0 && o.minus[i] ) || ( o.plus[i] < 0 && o.plus[i] ) ) * radians_per_frame;
           //Store yaw (rotation around the y-axis) in radians
           if (i==0) { this.my_rot[1] = ((this.my_rot[1] + velocity) % (2 * Math.PI)); }
 
@@ -732,28 +747,82 @@ class Movement_Controls extends Scene
       relative_thrust[1] = this.thrust[1];
       relative_thrust[2] =  (-this.thrust[0] * Math.sin(-this.my_rot[1])) + (this.thrust[2] * Math.cos(-this.my_rot[1]));
 
-      //Check for collisions with blocks and move if there are no collisions
-      //X axis
-      if(relative_thrust[0] < 0 && this.map.fast_raycast(this.my_pos, this.direction_map[0], 2) === null)
+      ////////////////////////////
+      // BEGIN COLLISION DETECTION
+      ////////////////////////////
+
+      let feet = [this.my_pos[0], this.my_pos[1]-1, this.my_pos[2]];
+      if(relative_thrust[0] < 0 && 
+          this.map.fast_raycast(this.my_pos, this.direction_map[0], 1) === null && 
+          this.map.fast_raycast(feet, this.direction_map[0], 2) === null)
+
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
-      else if(relative_thrust[0] > 0 && this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 2) === null)
+      else if(relative_thrust[0] > 0 && 
+              this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 1) === null &&
+              this.map.fast_raycast(feet, this.negative_direction_map[0], 2) === null )
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
       
       //Y axis
       // Special treatment for Y axis, as it needs to set thrust negative
-      if(relative_thrust[1] < 0 && 
+
+      //Check if one is eligible to jump
+      if ( !this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) !== null) )
+      {
+        this.grounded = true;
+        console.log("GROUNDED!");
+        this.is_jumping = false;
+      }
+      else if ( this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null) )
+      {
+        this.grounded = false;
+        console.log("NOT GROUNDED!");
+      }
+
+      //Jump
+      if (this.is_jumping)
+      {
+        let jump_velocity = 1 - (this.time_since_jump/this.total_jump_time);
+        console.log("JUMP VELOCITY: ", jump_velocity);
+      
+        this.my_pos[1] += meters_per_frame * this.jump_force;
+        this.time_since_jump = (new Date().getTime()) - this.jump_time;
+        if (this.time_since_jump >= this.total_jump_time)
+        {
+          this.is_jumping = false;
+        }
+        console.log(this.time_since_jump);
+      }
+      //Upon jump key being pressed
+      else if ( (relative_thrust[1] > 0) && this.grounded && this.space_released )
+      {
+        //Do not let the player jump again till the space key is released
+        this.space_released = false;
+        this.is_jumping = true;
+        //Record the time of jump
+        this.jump_time = new Date().getTime();
+      }
+      else if(relative_thrust[1] < 0 && 
          this.map.fast_raycast(this.my_pos, this.direction_map[1], 2) === null &&
          this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 2) !== null)
         this.my_pos[1] -= relative_thrust[1] * meters_per_frame;
       
       else if(this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null)
-        this.my_pos[1] -= relative_thrust[1] * meters_per_frame + meters_per_frame;
+        this.my_pos[1] -= relative_thrust[1] * meters_per_frame;// + meters_per_frame;
       
-      //Z axis
-      if(relative_thrust[2] < 0 && this.map.fast_raycast(this.my_pos, this.direction_map[2], 2) === null)
+      
+      if(relative_thrust[2] < 0 && 
+         this.map.fast_raycast(this.my_pos, this.direction_map[2], 1) === null &&
+         this.map.fast_raycast(feet, this.direction_map[2], 2) === null)
+
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
-      else if(relative_thrust[2] > 0 && this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 2) === null)
+      else if(relative_thrust[2] > 0 && 
+              this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 1) === null &&
+              this.map.fast_raycast(feet, this.negative_direction_map[2], 2) === null)
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
+      
+      //////////////////////////
+      // END COLLISION DETECTION
+      //////////////////////////
 
       //Recompute and set the camera transform and camera inverse matrices.
       this.recompute_cam_matrices();

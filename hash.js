@@ -8,7 +8,7 @@ const MIN_CHUNKS_TO_SHOW = 1;
 
 
 export class Map{
-  constructor(chunk_size, num_chunks, blocks){
+  constructor(chunk_size, num_chunks, blocks, generator){
     this.chunks = {};
     this.chunk_size = chunk_size;
     this.num_chunks = num_chunks;
@@ -16,13 +16,14 @@ export class Map{
     this.blocks = blocks;
     this.check_chunks_flag = true;
     this.num_showing = 0;
+    this.generator = generator;
     
   }
   get_chunk_coord(coord){
     coord = [coord[0], coord[2]];
     //let chunk_coord = coord.map(c => (c<0?-1:1)* Math.floor((c<0?-1:1) * c / this.chunk_size)  - (c<0?1:0));
-    let chunk_coord = coord.map(c => Math.floor( c / this.chunk_size) );
-    return chunk_coord;
+    return coord.map(c => Math.floor( c / this.chunk_size) );
+    //return chunk_coord;
   }
 
   //*********************************************
@@ -102,8 +103,10 @@ export class Map{
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     let chunk_temp = localStorage.getItem(chunk_coord_hash);
     if(! chunk_temp){
-      return false;
+      this.generator.generate_chunk(chunk_coord, this, this.blocks);
+      chunk_temp = localStorage.getItem(chunk_coord_hash);
     }
+      
     chunk_temp = JSON.parse(chunk_temp);
     let chunk = {};
     for(var world_coord_hash in chunk_temp){
@@ -146,6 +149,12 @@ export class Map{
     table = JSON.stringify(table);
     localStorage.setItem(chunk_coord_hash, table);
   }
+
+  // Delete a chunk from localStorage
+  delete_chunk_from_disk(chunk_coord){
+    let chunk_coord_hash = JSON.stringify( chunk_coord);
+    localStorage.removeItem(chunk_coord);
+  }
   
   is_in_bounds(chunk_coord, bounds){
     if(chunk_coord[0] < bounds.down_left[0] || chunk_coord[0] > bounds.up_right[0] 
@@ -167,6 +176,30 @@ export class Map{
       }
     }
     return null;
+  }
+
+  // returns an integer that is the encoded representation of the block, position and exposed data
+  encode_block(blocktype, x, y, z, exposed){
+	result = 0;
+	let e_val = 0;
+	if(exposed)
+		e_val = 1;
+	result = (blocktype & 0x1f) << 20 | 
+			 (x & 0xf) << 16 | 
+			 (y & 0x3f) << 11 | 
+			 (z & 0xf) << 5 |
+			 e_val;
+	return result;
+}
+
+  // Returns an array with [blocktype, x coordinate, y coordinate, z coordinate, exposed boolean]
+  decode_block(value){
+	let blocktype = (value >>> 20) & 0x1f;
+	let x = (value >>> 16) & 0xf;
+	let y = (value >>> 11) & 0x3f;
+	let z = (value >>> 5) & 0xf;
+	let e_val = value & 1 == 1;
+	return [blocktype, x, y, z, e_val];
   }
 
   draw(context, program_state){

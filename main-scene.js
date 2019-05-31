@@ -1,7 +1,7 @@
 import {tiny, defs} from './assignment-4-resources.js';
 import {Frustrum} from './frustrum.js';
 import {Map} from './hash.js';
-import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock} from './blocks.js';
+import {Block, GrassBlock, BrickBlock, StoneBlock, SandBlock, WoodBlock, LeafBlock, BedrockBlock} from './blocks.js';
 import {InputManager} from './input_manager.js';   
 import {gen_tree} from './generateTree.js';
 import {MapGenerator, CHUNK_SIZE} from './generateTerrain.js';
@@ -29,18 +29,19 @@ class Not_Solar_System extends Scene{
                     stone: new StoneBlock(),
                     sand: new SandBlock(),
                     wood: new WoodBlock(),
-                    leaf: new LeafBlock()
+                    leaf: new LeafBlock(),
+                    bedrock: new BedrockBlock()
     };
-    this.#seed = 1000;
+
+    let seed = localStorage.getItem('seed');
+    if(! seed)
+      this.#seed = new Date().getTime();
+    else
+      this.#seed = seed;
+    localStorage.clear();
     this.#input_manager = new InputManager();
-    this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks);
     this.#mapGenerator = new MapGenerator(this.#seed);
-
-    //gen_tree(this.#frustrum, [1,1,0],this.#blocks.wood, this.#blocks.leaf );
-    this.#mapGenerator.generate_chunk([0,-1], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([-1,-1], this.#map, this.#blocks);
-    this.#mapGenerator.generate_chunk([0,1], this.#map, this.#blocks);
-
+    this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks, this.#mapGenerator);
     }
   make_control_panel(){     
                              

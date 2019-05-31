@@ -9,7 +9,8 @@ export const BLOCK_TYPES = {
     "StoneBlock": 2,
     "SandBlock": 3,
     "WoodBlock": 4,
-    "LeafBlock": 5
+    "LeafBlock": 5,
+    "BedrockBlock": 6
 }; 
 
 export const BLOCK_TYPES_INV = {
@@ -18,7 +19,8 @@ export const BLOCK_TYPES_INV = {
     2: "StoneBlock",
     3: "SandBlock",
     4: "WoodBlock",
-    5: "LeafBlock"
+    5: "LeafBlock",
+    6: "BedrockBlock"
 }; 
 
 export const BLOCK_CONVERTER = {
@@ -27,8 +29,10 @@ export const BLOCK_CONVERTER = {
     "StoneBlock": "stone",
     "SandBlock": "sand",
     "WoodBlock": "wood",
-    "LeafBlock": "leaf"
+    "LeafBlock": "leaf",
+    "BedrockBlock": "bedrock"
 };
+
 export class Block extends defs.Cube{
     constructor(){
         super();
@@ -103,6 +107,16 @@ export class LeafBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/leaves.png")});
+    }
+    draw(context, program_state, transform){
+        super.draw(context, program_state, transform, this.#material);
+    }
+}
+export class BedrockBlock extends Block{
+    #material;
+    constructor(){
+        super();
+        this.#material = material.override({texture: new Texture("assets/bedrock.png")});
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
