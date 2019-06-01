@@ -774,11 +774,15 @@ class Movement_Controls extends Scene
        //Totally ignore gravity and jumping if in creative mode
        if (this.in_creative_mode)
        {
-         if ( relative_thrust[1] < 0 && this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null )
+         if ( relative_thrust[1] < 0 
+              && this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null 
+              && this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null )
          {
            this.my_pos[1] += relative_thrust[1] * meters_per_frame;
          }
-         else if ( relative_thrust[1] > 0 && this.map.fast_raycast(this.my_pos, this.direction_map[1], 1) === null )
+         else if ( relative_thrust[1] > 0 
+                   && this.map.fast_raycast(this.my_pos, this.direction_map[1], 1) === null 
+                   && this.map.fast_raycast(feet, this.direction_map[1], 1) === null)
          {
            this.my_pos[1] += relative_thrust[1] * meters_per_frame;
          }
@@ -830,7 +834,8 @@ class Movement_Controls extends Scene
           this.jump_time = new Date().getTime();
         }
         //If in the air and jump not active, fall
-        else if(this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null)
+        else if ( this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null
+                  && this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null )
           this.my_pos[1] -= meters_per_frame;
       }
 
