@@ -589,20 +589,24 @@ class Movement_Controls extends Scene
                              meters_per_frame: 20,
                              sensitivity: 10, 
                              speed_multiplier: 1, 
-                             jump_force: 1,
-                             total_jump_time: 200,
                              direction_map: [[1,0,0], [0,1,0], [0,0,1]],
                              negative_direction_map: [[-1,0,0], [0,-1,0], [0,0,-1]],  
                              
                              input_list: { w: false, a: false, s: false, d: false, space: false },
-                             grounded: false,
-                             space_released: true,
-                             is_jumping: false, 
-                             time_since_jump: 0.0,
-                             jump_time: 0.0,
                              thrust: Vec.of( 0,0,0 ), 
                              my_rot: Vec.of( 0,0,0 ),
                              my_pos: Vec.of( 7,40,-7 ),
+
+                             in_creative_mode: false,
+
+                             //Jumping related stuff
+                             jump_force: 1,             //How powerful the jump is
+                             grounded: false,
+                             space_released: true,
+                             jump_in_progress: false,
+                             jump_time: 0.0,            //What time the jump happened at
+                             time_since_jump: 0.0,  
+                             total_jump_time: 200,      //How long the jump should last for before gravity kicks in (milliseconds)
 
                              look_around_locked: false,
                              pos: Vec.of( 0,0,0 ), 
@@ -665,7 +669,8 @@ class Movement_Controls extends Scene
     else { this.thrust[0] = 0; }
 
     //Vertical motion
-     if (input_list.space) { this.thrust[1] = 1; } 
+     if (input_list.space && !input_list.z) { this.thrust[1] = 1; } 
+     else if (!input_list.space && input_list.z) { this.thrust[1] = -1; }
      else { this.thrust[1] = 0; }
   }
 
@@ -686,21 +691,22 @@ class Movement_Controls extends Scene
       this.key_triggered_button( "Back",   [ "s" ], () => this.input_list.s = true, undefined, () => this.input_list.s = false );     
       this.key_triggered_button( "Right",  [ "d" ], () => this.input_list.d = true, undefined, () => this.input_list.d = false );     
       this.new_line();
-      //this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  );    
+      this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  );   
+      this.key_triggered_button( "Creative mode", [ "c" ], () => this.in_creative_mode = !this.in_creative_mode ); 
   }
 
   recompute_cam_matrices()
   {    
     //Camera_transform
     let cam_t = Mat4.identity()
-                    .times( Mat4.translation(Vec.of(this.my_pos[0],this.my_pos[1],this.my_pos[2])) )     //Translation
-                    .times( Mat4.rotation( -this.my_rot[1], Vec.of(0,1,0)) )                                  //Yaw
-                    .times( Mat4.rotation( -this.my_rot[0], Vec.of(1,0,0)) ); //Pitch
+                    .times( Mat4.translation(Vec.of(this.my_pos[0],this.my_pos[1],this.my_pos[2])) )      //Translation
+                    .times( Mat4.rotation( -this.my_rot[1], Vec.of(0,1,0)) )                              //Yaw
+                    .times( Mat4.rotation( -this.my_rot[0], Vec.of(1,0,0)) );                             //Pitch
 
     //Camera_inverse
     let cam_i = Mat4.identity()
-                    .times(Mat4.rotation( this.my_rot[0], Vec.of(1,0,0)))                   //Pitch  
-                    .times( Mat4.rotation( this.my_rot[1], Vec.of(0,1,0)) )//Yaw
+                    .times(Mat4.rotation( this.my_rot[0], Vec.of(1,0,0)))                                 //Pitch  
+                    .times( Mat4.rotation( this.my_rot[1], Vec.of(0,1,0)) )                               //Yaw
                     .times( Mat4.translation(Vec.of(-this.my_pos[0],-this.my_pos[1],-this.my_pos[2])) );  //Translation
                
     this.set_4x4_matrix( this.matrix(), cam_t );
@@ -728,7 +734,7 @@ class Movement_Controls extends Scene
           else { this.my_rot[0] = ((this.my_rot[0] + velocity) % (2 * Math.PI)); }
           this.mouse.from_center[i] = 0;
         }
-                                    //Now apply translation movement of the camera, in the newest local coordinate frame.
+
       //Update the thrust vector according to the input list
       this.resolve_thrust( this.input_list );
 
@@ -742,8 +748,10 @@ class Movement_Controls extends Scene
       ////////////////////////////
       // BEGIN COLLISION DETECTION
       ////////////////////////////
-
+      
       let feet = [this.my_pos[0], this.my_pos[1]-1, this.my_pos[2]];
+
+      //X axis collision detection
       if(relative_thrust[0] < 0 && 
           this.map.fast_raycast(this.my_pos, this.direction_map[0], 1) === null && 
           this.map.fast_raycast(feet, this.direction_map[0], 2) === null)
@@ -752,54 +760,8 @@ class Movement_Controls extends Scene
               this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 1) === null &&
               this.map.fast_raycast(feet, this.negative_direction_map[0], 2) === null )
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
-      
-      // Special treatment for Y axis, as it needs to set thrust negative
 
-      //Check if one is eligible to jump
-      if ( !this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) !== null) )
-      {
-        this.grounded = true;
-        console.log("GROUNDED!");
-        this.is_jumping = false;
-      }
-      else if ( this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null) )
-      {
-        this.grounded = false;
-        console.log("NOT GROUNDED!");
-      }
-
-      //Jump
-      if (this.is_jumping)
-      {
-        let jump_velocity = 1 - (this.time_since_jump/this.total_jump_time);
-        console.log("JUMP VELOCITY: ", jump_velocity);
-      
-        this.my_pos[1] += meters_per_frame * this.jump_force;
-        this.time_since_jump = (new Date().getTime()) - this.jump_time;
-        if (this.time_since_jump >= this.total_jump_time)
-        {
-          this.is_jumping = false;
-        }
-        console.log(this.time_since_jump);
-      }
-      //Upon jump key being pressed
-      else if ( (relative_thrust[1] > 0) && this.grounded && this.space_released )
-      {
-        //Do not let the player jump again till the space key is released
-        this.space_released = false;
-        this.is_jumping = true;
-        //Record the time of jump
-        this.jump_time = new Date().getTime();
-      }
-      else if(relative_thrust[1] < 0 && 
-         this.map.fast_raycast(this.my_pos, this.direction_map[1], 2) === null &&
-         this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 2) !== null)
-        this.my_pos[1] -= relative_thrust[1] * meters_per_frame;
-      
-      else if(this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null)
-        this.my_pos[1] -= relative_thrust[1] * meters_per_frame;// + meters_per_frame;
-      
-      
+      //Z axis collision detection
       if(relative_thrust[2] < 0 && 
          this.map.fast_raycast(this.my_pos, this.direction_map[2], 1) === null &&
          this.map.fast_raycast(feet, this.direction_map[2], 2) === null)
@@ -808,7 +770,70 @@ class Movement_Controls extends Scene
               this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 1) === null &&
               this.map.fast_raycast(feet, this.negative_direction_map[2], 2) === null)
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
-      
+
+       //Totally ignore gravity and jumping if in creative mode
+       if (this.in_creative_mode)
+       {
+         if ( relative_thrust[1] < 0 && this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null )
+         {
+           this.my_pos[1] += relative_thrust[1] * meters_per_frame;
+         }
+         else if ( relative_thrust[1] > 0 && this.map.fast_raycast(this.my_pos, this.direction_map[1], 1) === null )
+         {
+           this.my_pos[1] += relative_thrust[1] * meters_per_frame;
+         }
+       }
+       //Special Y axis collision detection (accounting for gravity and jumping)
+       else 
+       {
+        //Check if player is on the ground
+        if ( !this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) !== null) )
+        {
+          console.log("GROUNDED!");
+          this.grounded = true;
+          this.jump_in_progress = false;
+        }
+        else if ( this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null) )
+        {
+          console.log("NOT GROUNDED!");
+          this.grounded = false;
+        }
+
+        //If currently jumping, increase Y-coordinate appropriately
+        if (this.jump_in_progress)
+        {
+          //Move up if the space above you is clear
+          if (this.map.fast_raycast(this.my_pos, this.direction_map[1], 1) === null)
+          {
+            this.my_pos[1] += meters_per_frame * this.jump_force; 
+
+            //Only jump for the amount of time specified in this.total_jump_time
+            this.time_since_jump = (new Date().getTime()) - this.jump_time;
+            if (this.time_since_jump >= this.total_jump_time)
+            {
+              this.jump_in_progress = false;
+            } 
+          }
+          //End jump immediately if your head smacks against something
+          else 
+          {
+            this.jump_in_progress = false;
+          }
+        }
+        //Upon jump key being pressed, attempt to jump
+        else if ( this.input_list.space && this.grounded && this.space_released )
+        {
+          //Do not let the player jump again till the space key is released
+          this.space_released = false;
+          this.jump_in_progress = true;
+          //Record the time of jump
+          this.jump_time = new Date().getTime();
+        }
+        //If in the air and jump not active, fall
+        else if(this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null)
+          this.my_pos[1] -= meters_per_frame;
+      }
+
       //////////////////////////
       // END COLLISION DETECTION
       //////////////////////////
