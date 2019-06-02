@@ -5,7 +5,7 @@ const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
 
 const MIN_CHUNKS_TO_SHOW = 1;
-const MAX_CHUNKS = 15;
+const MAX_CHUNKS = 18;
 const CHUNK_DIST = 1;
 
 export class Map{
@@ -18,8 +18,8 @@ export class Map{
     this.check_chunks_flag = true;
     this.chunks_loaded = 8;
     this.generator = generator;
-    this.load_queue = []
-    this.unload_queue = []
+    this.load_queue = new Set();
+    this.unload_queue = new Set();
 	
     
   }
@@ -80,7 +80,7 @@ export class Map{
     return chunk[JSON.stringify(coord)];
     
   }
-  async evict(chunk_coord){
+  evict(chunk_coord){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     let chunk = this.chunks[chunk_coord_hash];
     if(chunk === null){
@@ -103,7 +103,7 @@ export class Map{
     return true;
   }
 
-  async reinstate(chunk_coord){
+  reinstate(chunk_coord){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     if(this.chunks[chunk_coord_hash]){
     	return false;
@@ -229,11 +229,12 @@ export class Map{
     }
 	if(new_position != this.last_position || override){
 		// Load
+		this.load_queue.clear();
 		for(var x = -CHUNK_DIST; x <= CHUNK_DIST; x++){
 			for(var z = -CHUNK_DIST; z <= CHUNK_DIST; z ++){
-				if(! this.chunks[JSON.stringify([new_position[0]+x, new_position[1]+z])]){
-					this.load_queue.push(this.reinstate([new_position[0]+x, new_position[1]+z]))
-					this.chunks_loaded ++;
+				let cname = JSON.stringify([new_position[0]+x, new_position[1]+z])
+				if(! this.chunks[cname]){
+					this.load_queue.add(cname);
 				}
 			}
 		}
@@ -242,8 +243,7 @@ export class Map{
 		if(this.chunks_loaded > MAX_CHUNKS){
 			for(var chunk in this.chunks){
 				if(this.dist(JSON.parse(chunk), new_position) > 7){
-					this.unload_queue.push(this.evict(JSON.parse(chunk)))
-					this.chunks_loaded --;
+					this.unload_queue.add(chunk)
 				}
 			}
 
@@ -254,18 +254,17 @@ export class Map{
 
 
 	let performed_operation = false;
-	if(this.unload_queue.length > 0){
-		performed_operation = true;
-		async () => {
-			await this.unload_queue[this.unload_queue.length - 1 ]
-			this.unload_queue.pop()
-		};
+	if(this.unload_queue.size > 0){
+		const val = (this.unload_queue.values().next().value);
+		this.evict(JSON.parse(val));
+		this.unload_queue.delete(val);
+		this.chunks_loaded --;
 	}
-	if(this.load_queue.length > 0 && ! performed_operation){
-		async () => {
-			await this.load_queue[this.load_queue.length - 1 ]
-			this.load_queue.pop();
-		};
+	if(this.load_queue.size > 0 && ! performed_operation){
+		const val = (this.load_queue.values().next().value);
+		this.reinstate(JSON.parse(val));
+		this.load_queue.delete(val);
+		this.chunks_loaded ++;
 	}
 
     this.frustrum.draw(context, program_state);    
