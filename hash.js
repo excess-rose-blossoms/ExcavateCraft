@@ -16,9 +16,10 @@ export class Map{
     this.frustrum = new Frustrum(this);
     this.blocks = blocks;
     this.check_chunks_flag = true;
-    this.chunks_loaded = 0;
+    this.chunks_loaded = 8;
     this.generator = generator;
-    this.promise_queue = []
+    this.load_queue = []
+    this.unload_queue = []
 	
     
   }
@@ -79,7 +80,7 @@ export class Map{
     return chunk[JSON.stringify(coord)];
     
   }
-  evict(chunk_coord){
+  async evict(chunk_coord){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     let chunk = this.chunks[chunk_coord_hash];
     if(chunk === null){
@@ -102,7 +103,7 @@ export class Map{
     return true;
   }
 
-  reinstate(chunk_coord){
+  async reinstate(chunk_coord){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     if(this.chunks[chunk_coord_hash]){
     	return false;
@@ -230,21 +231,41 @@ export class Map{
 		// Load
 		for(var x = -CHUNK_DIST; x <= CHUNK_DIST; x++){
 			for(var z = -CHUNK_DIST; z <= CHUNK_DIST; z ++){
-				if(this.reinstate([new_position[0]+x, new_position[1]+z]))
+				if(! this.chunks[JSON.stringify([new_position[0]+x, new_position[1]+z])]){
+					this.load_queue.push(this.reinstate([new_position[0]+x, new_position[1]+z]))
 					this.chunks_loaded ++;
+				}
 			}
 		}
 
 		// Unload
 		if(this.chunks_loaded > MAX_CHUNKS){
 			for(var chunk in this.chunks){
-				if(this.dist(JSON.parse(chunk), new_position) > 7)
-					if(this.evict(JSON.parse(chunk)))
-						this.chunks_loaded --;
+				if(this.dist(JSON.parse(chunk), new_position) > 7){
+					this.unload_queue.push(this.evict(JSON.parse(chunk)))
+					this.chunks_loaded --;
+				}
 			}
+
 		}
 		this.last_position[0] = new_position[0];
 		this.last_position[1] = new_position[1];
+	}
+
+
+	let performed_operation = false;
+	if(this.unload_queue.length > 0){
+		performed_operation = true;
+		async () => {
+			await this.unload_queue[this.unload_queue.length - 1 ]
+			this.unload_queue.pop()
+		};
+	}
+	if(this.load_queue.length > 0 && ! performed_operation){
+		async () => {
+			await this.load_queue[this.load_queue.length - 1 ]
+			this.load_queue.pop();
+		};
 	}
 
     this.frustrum.draw(context, program_state);    
