@@ -90,10 +90,10 @@ export class Map{
     let x_off = chunk_coord[0] * 16;
     let z_off = chunk_coord[1] * 16;
     for(var world_coord_hash in chunk){
-      let positions = JSON.parse(world_coord_hash);
+      let positions = this.decode_position(world_coord_hash);
       let encoded = this.encode_block(chunk[world_coord_hash].block.id, 
-      positions[0] - x_off, positions[1], positions[2] - z_off, chunk[world_coord_hash].exposed);
-      this.frustrum.deleteBlock(positions);
+      positions[0], positions[1], positions[2], chunk[world_coord_hash].exposed);
+      this.frustrum.deleteBlock([positions[0]+x_off, positions[1], positions[2]+z_off]);
       chunk_list.push(encoded);
     }
     localStorage.setItem(chunk_coord_hash, JSON.stringify(chunk_list));
@@ -122,7 +122,7 @@ export class Map{
       	};
       	let world_coord = [chunk_temp[i].x + x_off, chunk_temp[i].y, chunk_temp[i].z + z_off];
       	this.frustrum.insertBlock(world_coord, thisblock);
-      	chunk[JSON.stringify(world_coord)] = thisblock;
+      	chunk[this.encode_position([chunk_temp[i].x, chunk_temp[i].y, chunk_temp[i].z])] = thisblock;
       }
     }else{
     	chunk_temp = JSON.parse(chunk_temp);
@@ -134,23 +134,26 @@ export class Map{
 		  };
 		  let world_coord = [decoded[1]+x_off, decoded[2], decoded[3]+z_off];
 		  this.frustrum.insertBlock(world_coord, thisblock);
-		  chunk[JSON.stringify(world_coord)] = thisblock;
+		  chunk[this.encode_position(world_coord)] = thisblock;
 		}
     }
     this.chunks[chunk_coord_hash] = chunk;   
     return true;
   }
 
-  get_bounds(chunk_coord){
-    let add_right_up =  Math.floor(this.num_chunks/2) - 1;
-    let add_left_down = -Math.floor(this.num_chunks/2);
-    let bounds = {}
-    bounds.up_right = Vec.of(...chunk_coord).plus(Vec.of( add_right_up, add_right_up));
-    bounds.down_left = Vec.of(...chunk_coord).plus(Vec.of( add_left_down, add_left_down));
-    bounds.up_right = [bounds.up_right[0], bounds.up_right[1]];
-    bounds.down_left = [bounds.down_left[0], bounds.down_left[1]];
-    return bounds;
-  }
+  encode_position(arr){
+	let result = (arr[0] & 0xf)  << 10 |
+			 (arr[1] & 0x3f) << 4 |
+			 (arr[2] & 0xf);
+	return result;
+  };
+
+  decode_position(value){
+	let z = value & 0xf;
+	let y = (value >> 4) & 0x3f;
+	let x = (value >> 10) & 0xf;
+	return [x, y, z];
+  };
 
   //inserts into local storage, draw takes care of displying the right chunks
   insert_chunk(chunk_coord, chunk){
@@ -255,6 +258,7 @@ export class Map{
 
 	let performed_operation = false;
 	if(this.unload_queue.size > 0){
+		performed_operation = true;
 		const val = (this.unload_queue.values().next().value);
 		this.evict(JSON.parse(val));
 		this.unload_queue.delete(val);
