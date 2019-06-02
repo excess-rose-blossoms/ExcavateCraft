@@ -31,7 +31,6 @@ export class MapGenerator{
         }
       }
     }
-    let chunk_obj = {};
     for(var x = -1; x < CHUNK_SIZE + 1; x ++){
       for(var y = 0; y< HEIGHT; y++){
         for(var z = -1; z< CHUNK_SIZE + 1; z++){
@@ -68,18 +67,19 @@ export class MapGenerator{
     }
 
     // Convert multi-dimensional array into an item that can be stored
+    let chunk_list = []
     for(var x = 1; x < CHUNK_SIZE+1; x++){
       for(var y = 0; y<HEIGHT; y++){
         for(var z = 1; z<CHUNK_SIZE+1; z++){
           if(my_chunk[x][y][z] !== null){
-            chunk_obj[JSON.stringify(this.convert_to_worldcoords(chunk, x-1, y, z-1))] = my_chunk[x][y][z];
+            chunk_list.push({block:my_chunk[x][y][z].block, x:x-1, y:y, z:z-1, exposed:my_chunk[x][y][z].exposed});
           }
         }
       }
     }
 
-    map.insert_chunk(chunk, chunk_obj);
-    return chunk_obj;
+    map.insert_chunk(chunk, chunk_list);
+    return chunk_list;
   }
 
   block_is_exposed(chunk_data, x, y, z){

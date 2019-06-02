@@ -1,5 +1,5 @@
 import {tiny, defs} from './assignment-4-resources.js';
-import {Block, BLOCK_TYPES, BLOCK_TYPES_INV, BLOCK_CONVERTER} from './blocks.js';
+import {Block, BLOCK_TYPES, BLOCK_TYPES_INV, BLOCK_CONVERTER, INT_TO_BLOCK} from './blocks.js';
 import {Frustrum} from './frustrum.js';
 const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
@@ -78,46 +78,58 @@ export class Map{
     
   }
   evict(chunk_coord){
-    let table = {};
     let chunk_coord_hash = JSON.stringify(chunk_coord);
-    if(! this.chunks.hasOwnProperty(chunk_coord_hash)){
+    let chunk = this.chunks[chunk_coord_hash];
+    if(chunk === null){
       return false;
     }
-    let chunk = this.chunks[chunk_coord_hash];
+    let chunk_list = []
+    let x_off = chunk_coord[0] * 16;
+    let z_off = chunk_coord[1] * 16;
     for(var world_coord_hash in chunk){
-      table[world_coord_hash] = {};
-      table[world_coord_hash].exposed = chunk[world_coord_hash].exposed;
-      let block_type = BLOCK_TYPES[chunk[world_coord_hash].block.constructor.name];
-      table[world_coord_hash].block = block_type;
-      let world_coord_arr = JSON.parse(world_coord_hash);
-      this.frustrum.deleteBlock(world_coord_arr);
+      let positions = JSON.parse(world_coord_hash);
+      let encoded = this.encode_block(chunk[world_coord_hash].block.id, 
+      positions[0] - x_off, positions[1], positions[2] - z_off, chunk[world_coord_hash].exposed);
+      this.frustrum.deleteBlock(positions);
+      chunk_list.push(encoded);
     }
-    table = JSON.stringify(table);
-    localStorage.setItem(chunk_coord_hash, table);
+    localStorage.setItem(chunk_coord_hash, JSON.stringify(chunk_list));
     this.chunks[chunk_coord_hash] = null;
     delete this.chunks[chunk_coord_hash];
+
     return true;
   }
 
   reinstate(chunk_coord){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
     let chunk_temp = localStorage.getItem(chunk_coord_hash);
-    if(! chunk_temp){
-      this.generator.generate_chunk(chunk_coord, this, this.blocks);
-      chunk_temp = localStorage.getItem(chunk_coord_hash);
-    }
-      
-    chunk_temp = JSON.parse(chunk_temp);
+    let x_off = 16 * chunk_coord[0];
+    let z_off = 16 * chunk_coord[1];
     let chunk = {};
-    for(var world_coord_hash in chunk_temp){
-      chunk[world_coord_hash] = {};
-      chunk[world_coord_hash].exposed = chunk_temp[world_coord_hash].exposed;
-      let block_type = chunk_temp[world_coord_hash].block;
-      block_type = BLOCK_TYPES_INV[block_type];
-      block_type = BLOCK_CONVERTER[block_type];
-      chunk[world_coord_hash].block = this.blocks[block_type];
-      let world_coord_arr = JSON.parse(world_coord_hash);
-      this.frustrum.insertBlock(world_coord_arr, chunk[world_coord_hash]);
+
+    if(! chunk_temp){
+      chunk_temp = this.generator.generate_chunk(chunk_coord, this, this.blocks);
+      for(var i = 0; i<chunk_temp.length; i++){
+      	let thisblock = {
+      		block: chunk_temp[i].block,
+      		exposed: chunk_temp[i].exposed
+      	};
+      	let world_coord = [chunk_temp[i].x + x_off, chunk_temp[i].y, chunk_temp[i].z + z_off];
+      	this.frustrum.insertBlock(world_coord, thisblock);
+      	chunk[JSON.stringify(world_coord)] = thisblock;
+      }
+    }else{
+    	chunk_temp = JSON.parse(chunk_temp);
+		for(var i = 0; i<chunk_temp.length; i++){
+			let decoded = this.decode_block(chunk_temp[i]);
+			let thisblock = {
+				block: this.blocks[INT_TO_BLOCK[decoded[0]]],
+				exposed: decoded[4]
+		  };
+		  let world_coord = [decoded[1]+x_off, decoded[2], decoded[3]+z_off];
+		  this.frustrum.insertBlock(world_coord, thisblock);
+		  chunk[JSON.stringify(world_coord)] = thisblock;
+		}
     }
     this.chunks[chunk_coord_hash] = chunk;   
     return true;
@@ -137,17 +149,13 @@ export class Map{
   //inserts into local storage, draw takes care of displying the right chunks
   insert_chunk(chunk_coord, chunk){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
-    let table = {};
-    for(var world_coord_hash in chunk){
-      table[world_coord_hash] = {};
-      table[world_coord_hash].exposed = chunk[world_coord_hash].exposed;
-      let block_type = chunk[world_coord_hash].block.constructor.name;
-      block_type = BLOCK_TYPES[block_type];
-      table[world_coord_hash].block = block_type;
-      let world_coord_arr = JSON.parse(world_coord_hash);
+    let blocklist = [];
+    let value = 0;
+    for(var i = 0; i<chunk.length; i++){
+		value = this.encode_block(chunk[i].block_type, chunk[i].x, chunk[i].y, chunk[i].z, chunk[i].exposed);
+		blocklist.push(value);
     }
-    table = JSON.stringify(table);
-    localStorage.setItem(chunk_coord_hash, table);
+    localStorage.setItem(chunk_coord_hash, JSON.stringify(blocklist));
   }
 
   // Delete a chunk from localStorage
@@ -166,7 +174,7 @@ export class Map{
 
   // FAST RAYCAST: Takes a single direction and raycasts to the first nearest block
   fast_raycast(position, direction, depth){
-    for(var i = 1; i<=depth; i++){
+    for(var i = 0; i<=depth; i++){
       let newpos = [Math.floor(position[0]+direction[0]*i), 
                     Math.floor(position[1]+direction[1]*i), 
                     Math.floor(position[2]+direction[2]*i)];
@@ -180,12 +188,11 @@ export class Map{
 
   // returns an integer that is the encoded representation of the block, position and exposed data
   encode_block(blocktype, x, y, z, exposed){
-	result = 0;
 	let e_val = 0;
 	if(exposed)
 		e_val = 1;
-	result = (blocktype & 0x1f) << 20 | 
-			 (x & 0xf) << 16 | 
+	let result = (blocktype & 0x1f) << 21 | 
+			 (x & 0xf) << 17 | 
 			 (y & 0x3f) << 11 | 
 			 (z & 0xf) << 5 |
 			 e_val;
@@ -194,11 +201,11 @@ export class Map{
 
   // Returns an array with [blocktype, x coordinate, y coordinate, z coordinate, exposed boolean]
   decode_block(value){
-	let blocktype = (value >>> 20) & 0x1f;
-	let x = (value >>> 16) & 0xf;
+	let blocktype = (value >>> 21) & 0x1f;
+	let x = (value >>> 17) & 0xf;
 	let y = (value >>> 11) & 0x3f;
 	let z = (value >>> 5) & 0xf;
-	let e_val = value & 1 == 1;
+	let e_val = (value & 1) == 1;
 	return [blocktype, x, y, z, e_val];
   }
 
