@@ -37,21 +37,40 @@ export class MapGenerator{
           let perlin = this.#noise.noise((x+chunk[0] * CHUNK_SIZE)/CHAOS, 
                                          y/CHAOS,
                                          (z+chunk[1]*CHUNK_SIZE)/CHAOS);
-          if(2*perlin + (.5 - 5*y/HEIGHT)> 0){
-            my_chunk[x+1][y][z+1] = {
-              'block': blocks.grass, 
-              'exposed': true
-            };          
+            if(perlin + (.7 - 2*y/HEIGHT) > 0){
+              my_chunk[x+1][y][z+1] = {
+                'block': blocks.grass,
+                'exposed': true
+              }
+            }
+            if(perlin - y/HEIGHT > .5){
+              my_chunk[x+1][y][z+1] = {
+                'block': blocks.sand,
+                'exposed': true
+              }
+            }
+            if(perlin + (.7 - 3*y/HEIGHT)> 0){
+              my_chunk[x+1][y][z+1] = {
+                'block': blocks.stone, 
+                'exposed': true
+            };
           }
         }
       }
     }
+    
     for(var x = 0; x < CHUNK_SIZE + 2; x++){
       for(var z = 0; z < CHUNK_SIZE + 2; z++){
         my_chunk[x][0][z] = {
           'block': blocks.bedrock,
           'exposed': true
         };
+        for(var y = HEIGHT -1; y > 8; y--){
+            let temp = my_chunk[x][y][z];
+            if(temp && temp.block == blocks.grass){
+              //GENERATE TREE HERE
+            }
+        }
       }
     }
 
