@@ -7,7 +7,7 @@ const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
 const MIN_CHUNKS_TO_SHOW = 1;
 const MAX_CHUNKS = 18;
 const CHUNK_DIST = 1;
-
+const HEIGHT = 64;
 export class Map{
   constructor(chunk_size, num_chunks, blocks, generator){
     this.chunks = {};
@@ -36,48 +36,62 @@ export class Map{
   deleteBlock(coord){
     this.frustrum.deleteBlock(coord);
     let chunk_coord = this.get_chunk_coord(coord)
-    this.chunks[JSON.stringify(chunk_coord)][JSON.stringify(coord)] = null;
-    delete this.chunks[JSON.stringify(chunk_coord)][JSON.stringify(coord)];
+    let chunk = this.chunks[JSON.stringify(chunk_coord)];
+    if(!chunk)
+    	return;
+   	// TODO: This misses the case that the removed block is BETWEEN 2 chunks
+   	if(chunk[this.encode_position([coord[0]-1, coord[1], coord[2]])])
+   		chunk[this.encode_position([coord[0]-1, coord[1], coord[2]])].exposed = true;
+   	if(chunk[this.encode_position([coord[0]+1, coord[1], coord[2]])])
+   		chunk[this.encode_position([coord[0]+1, coord[1], coord[2]])].exposed = true;
+   	if(chunk[this.encode_position([coord[0], coord[1]-1, coord[2]])])
+   		chunk[this.encode_position([coord[0], coord[1]-1, coord[2]])].exposed = true;
+   	if(chunk[this.encode_position([coord[0], coord[1]+1, coord[2]])])
+   		chunk[this.encode_position([coord[0], coord[1]+1, coord[2]])].exposed = true;
+   	if(chunk[this.encode_position([coord[0], coord[1], coord[2]-1])])
+   		chunk[this.encode_position([coord[0], coord[1], coord[2]-1])].exposed = true;
+   	if(chunk[this.encode_position([coord[0], coord[1], coord[2]+1])])
+   		chunk[this.encode_position([coord[0], coord[1], coord[2]+1])].exposed = true;
+    chunk[this.encode_position(coord)] = null;
+    delete this.chunks[JSON.stringify(chunk_coord)][this.encode_position(coord)];
   }
-  //block includes 'exposed' property
+
+  //block is just a block class
   insertBlock(coord, block){
     let chunk_coord = this.get_chunk_coord(coord);
     let chunk_coord_hash = JSON.stringify(chunk_coord);
+    let encoded_pos = this.encode_position(coord);
     let flag = {};
     if(! this.chunks.hasOwnProperty(chunk_coord_hash)){
-      let chunk = localStorage.getItem(chunk_coord_hash);
-      if(!chunk){
-        chunk = {};
-      }else{
-        chunk = JSON.parse(chunk);
-      }
-      chunk[JSON.stringify(coord)] = {};
-      chunk[JSON.stringify(coord)].exposed = block.exposed;
-      let block_type = BLOCK_TYPES[chunk[world_coord_hash].block.constructor.name];
-      chunk[JSON.stringify(coord)].block = block_type;
-      chunk = JSON.stringify(chunk);
-      localStorage.setItem(chunk_coord_hash, chunk);
-    }else{
-      this.chunks[chunk_coord_hash][JSON.stringify(coord)] = block;
-      this.frustrum.insertBlock(coord, block);
+    	return false;
     }
-
-    
+    // There was alreay a block in the position!
+	if(this.chunks[chunk_coord_hash][encoded_pos])
+		return false;
+	
+	this.chunks[chunk_coord_hash][encoded_pos] = {
+		block:block,
+		exposed: true
+	}
+	// TODO: recalculate neighboring blocks to check if they are now not exposed
+	this.frustrum.insertBlock(coord, block);
+	return true;
   }
+
   get(coord){
+  	if(coord[1] >= HEIGHT )
+  		return null;
     let chunk_coord = this.get_chunk_coord(coord);
     let chunk_coord_hash = JSON.stringify(chunk_coord);
-    let chunk = {};
-    if(! this.chunks.hasOwnProperty(chunk_coord_hash)){
-      chunk = localStorage.getItem(chunk_coord_hash);
-    }else{
-      chunk = this.chunks[chunk_coord_hash];
-    }
-
-    if(!chunk || !chunk[JSON.stringify(coord)]){
+    let local_coord = [coord[0] - chunk_coord[0]<<4, coord[1], coord[1] - chunk_coord[1]<<4];
+    if(! this.chunks.hasOwnProperty(chunk_coord_hash))
+    	return null;
+    
+    let chunk = this.chunks[chunk_coord_hash];
+    if(!chunk || !chunk[this.encode_position(coord)]){
       return null;
     }
-    return chunk[JSON.stringify(coord)];
+    return chunk[this.encode_position(coord)];
     
   }
   evict(chunk_coord){
@@ -183,7 +197,7 @@ export class Map{
 
   // FAST RAYCAST: Takes a single direction and raycasts to the first nearest block
   fast_raycast(position, direction, depth){
-    for(var i = 0; i<=depth; i++){
+    for(var i = 1; i<=depth; i++){
       let newpos = [Math.floor(position[0]+direction[0]*i), 
                     Math.floor(position[1]+direction[1]*i), 
                     Math.floor(position[2]+direction[2]*i)];
