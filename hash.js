@@ -5,7 +5,8 @@ const { Vec, Mat, Mat4, Color, Light, Shape, Shader, Material, Texture,
          Scene, Canvas_Widget, Code_Widget, Text_Widget } = tiny;
 
 const MIN_CHUNKS_TO_SHOW = 1;
-
+const MAX_CHUNKS = 15;
+const CHUNK_DIST = 1;
 
 export class Map{
   constructor(chunk_size, num_chunks, blocks, generator){
@@ -15,13 +16,14 @@ export class Map{
     this.frustrum = new Frustrum(this);
     this.blocks = blocks;
     this.check_chunks_flag = true;
-    this.num_showing = 0;
+    this.chunks_loaded = 0;
     this.generator = generator;
+    this.promise_queue = []
+	
     
   }
   get_chunk_coord(coord){
     coord = [coord[0], coord[2]];
-    //let chunk_coord = coord.map(c => (c<0?-1:1)* Math.floor((c<0?-1:1) * c / this.chunk_size)  - (c<0?1:0));
     return coord.map(c => Math.floor( c / this.chunk_size) );
     //return chunk_coord;
   }
@@ -102,6 +104,9 @@ export class Map{
 
   reinstate(chunk_coord){
     let chunk_coord_hash = JSON.stringify(chunk_coord);
+    if(this.chunks[chunk_coord_hash]){
+    	return false;
+    }
     let chunk_temp = localStorage.getItem(chunk_coord_hash);
     let x_off = 16 * chunk_coord[0];
     let z_off = 16 * chunk_coord[1];
@@ -208,42 +213,40 @@ export class Map{
 	let e_val = (value & 1) == 1;
 	return [blocktype, x, y, z, e_val];
   }
+  dist(chunk1, chunk2){
+  	let dist = (chunk1[0]-chunk2[0])*(chunk1[0]-chunk2[0]) + (chunk1[1]-chunk2[1])*(chunk1[1]-chunk2[1]);
+  	return dist;
+  }
 
   draw(context, program_state){
     let cam_pos = program_state.camera_transform.map(row => row[3]);
-    this.new_position = this.get_chunk_coord(cam_pos);
+    let new_position = this.get_chunk_coord(cam_pos);
+    let override = false;
     if(!this.last_position){
-      this.last_position = this.new_position;  
-      this.check_chunks_flag = true;    
+		this.last_position = new_position;  
+		override = true;
     }
+	if(new_position != this.last_position || override){
+		// Load
+		for(var x = -CHUNK_DIST; x <= CHUNK_DIST; x++){
+			for(var z = -CHUNK_DIST; z <= CHUNK_DIST; z ++){
+				if(this.reinstate([new_position[0]+x, new_position[1]+z]))
+					this.chunks_loaded ++;
+			}
+		}
 
-    let dist = Vec.of(...this.new_position).minus(Vec.of(...this.last_position)).norm();    
-    if(dist >= 1 || this.check_chunks_flag){   
-      console.log("checking chunks " + this.new_position + "   " + this.last_position); 
-      let bounds = this.get_bounds(this.new_position);
+		// Unload
+		if(this.chunks_loaded > MAX_CHUNKS){
+			for(var chunk in this.chunks){
+				if(this.dist(JSON.parse(chunk), new_position) > 7)
+					if(this.evict(JSON.parse(chunk)))
+						this.chunks_loaded --;
+			}
+		}
+		this.last_position[0] = new_position[0];
+		this.last_position[1] = new_position[1];
+	}
 
-      for(var chunk_coord in this.chunks){
-        let chunk_coord_arr = JSON.parse(chunk_coord);
-        if(!this.is_in_bounds(chunk_coord_arr, bounds)){
-          if(this.evict(chunk_coord_arr))
-            {this.num_showing--;}
-        }
-      }
-      for(var i = bounds.down_left[0]; i <= bounds.up_right[0]; i++){
-        for(var j = bounds.down_left[1]; j <= bounds.up_right[1]; j++){
-          let curr_chunk_coord = [i, j];
-          let curr_hash = JSON.stringify(curr_chunk_coord);
-          if(! this.chunks.hasOwnProperty(curr_hash)){
-            if(this.reinstate(curr_chunk_coord))
-              {this.num_showing++;}
-          }
-        }
-      }
-      this.last_position = this.new_position;
-      if(this.num_showing >= MIN_CHUNKS_TO_SHOW){
-        this.check_chunks_flag = false;
-      }      
-    }
     this.frustrum.draw(context, program_state);    
     
   }  
