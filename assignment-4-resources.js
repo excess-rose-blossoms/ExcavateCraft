@@ -595,9 +595,9 @@ class Movement_Controls extends Scene
                              input_list: { w: false, a: false, s: false, d: false, space: false },
                              thrust: Vec.of( 0,0,0 ), 
                              my_rot: Vec.of( 0,0,0 ),
-                             my_pos: Vec.of( 7,40,-7 ),
+                             my_pos: Vec.of( 7,100,-7 ),
 
-                             in_creative_mode: false,
+                             in_creative_mode: true,
 
                              //Jumping related stuff
                              jump_force: 1,             //How powerful the jump is

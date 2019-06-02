@@ -33,6 +33,16 @@ export const BLOCK_CONVERTER = {
     "BedrockBlock": "bedrock"
 };
 
+export const INT_TO_BLOCK = {
+    0: "grass",
+    1: "brick",
+    2: "stone",
+    3: "sand",
+    4: "wood",
+    5: "leaf",
+    6: "bedrock"
+}
+
 export class Block extends defs.Cube{
     constructor(){
         super();
@@ -52,6 +62,7 @@ export class GrassBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({ texture: new Texture( "assets/grass.png" )});
+        this.id = 0;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
@@ -63,6 +74,7 @@ export class BrickBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/bricks.png")});
+        this.id = 1;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
@@ -74,6 +86,7 @@ export class StoneBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/stone.png")});
+        this.id = 2;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
@@ -85,6 +98,7 @@ export class SandBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/sand.png")});
+        this.id = 3;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
@@ -96,6 +110,7 @@ export class WoodBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/wood.png")});
+        this.id = 4;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
@@ -107,6 +122,7 @@ export class LeafBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/leaves.png")});
+        this.id = 5;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);
@@ -117,6 +133,7 @@ export class BedrockBlock extends Block{
     constructor(){
         super();
         this.#material = material.override({texture: new Texture("assets/bedrock.png")});
+        this.id = 6;
     }
     draw(context, program_state, transform){
         super.draw(context, program_state, transform, this.#material);

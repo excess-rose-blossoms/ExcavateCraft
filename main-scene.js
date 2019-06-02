@@ -83,32 +83,6 @@ class Not_Solar_System extends Scene{
       //this.map.draw(context, program_state);
       model_transform = Mat4.identity();
       
-//       this.#blocks.grass.draw( context, program_state, model_transform);
-
-//       model_transform = model_transform
-//                           .times( Mat4.translation( Vec.of(0,10,0) ) );
-      
-//       this.#blocks.grass.draw( context, program_state, model_transform); 
-
-//       model_transform = model_transform
-//                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
-
-//       this.#blocks.grass.draw( context, program_state, model_transform);
-
-//       model_transform = model_transform
-//                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
-
-//       this.#blocks.grass.draw( context, program_state, model_transform);
-
-//             model_transform = model_transform
-//                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
-
-//       this.#blocks.grass.draw( context, program_state, model_transform);
-
-//             model_transform = model_transform
-//                           .times( Mat4.translation( Vec.of(0,5,5) ) );  
-
-//       this.#blocks.grass.draw( context, program_state, model_transform);
       this.#map.draw(context, program_state);
       
     }

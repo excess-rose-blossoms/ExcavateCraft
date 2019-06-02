@@ -1,5 +1,6 @@
 import {PerlinNoise} from './utils/perlin.js';
 import {Random} from './utils/random.js';
+import {gen_tree} from './generateTree.js';
 
 export const CHUNK_SIZE = 16;
 const HEIGHT = 32;
@@ -31,28 +32,59 @@ export class MapGenerator{
         }
       }
     }
-    let chunk_obj = {};
     for(var x = -1; x < CHUNK_SIZE + 1; x ++){
       for(var y = 0; y< HEIGHT; y++){
         for(var z = -1; z< CHUNK_SIZE + 1; z++){
           let perlin = this.#noise.noise((x+chunk[0] * CHUNK_SIZE)/CHAOS, 
                                          y/CHAOS,
                                          (z+chunk[1]*CHUNK_SIZE)/CHAOS);
-          if(2*perlin + (.5 - 5*y/HEIGHT)> 0){
-            my_chunk[x+1][y][z+1] = {
-              'block': blocks.grass, 
-              'exposed': true
-            };          
+            if(perlin + (.7 - 2*y/HEIGHT) > 0){
+              my_chunk[x+1][y][z+1] = {
+                'block': blocks.grass,
+                'exposed': true
+              }
+            }
+            if(perlin - y/HEIGHT > .5){
+              my_chunk[x+1][y][z+1] = {
+                'block': blocks.sand,
+                'exposed': true
+              }
+            }
+            if(perlin + (.7 - 3*y/HEIGHT)> 0){
+              my_chunk[x+1][y][z+1] = {
+                'block': blocks.stone, 
+                'exposed': true
+            };
           }
         }
       }
     }
-    for(var x = 0; x < CHUNK_SIZE + 2; x++){
-      for(var z = 0; z < CHUNK_SIZE + 2; z++){
+    
+    for(var x = 0; x < CHUNK_SIZE + 2; x+=3){
+      for(var z = 0; z < CHUNK_SIZE + 2; z+=4){
         my_chunk[x][0][z] = {
           'block': blocks.bedrock,
           'exposed': true
         };
+        for(var y = HEIGHT -1; y > 8; y--){
+            let temp = my_chunk[x][y][z];
+            if(temp && temp.block == blocks.grass){
+              if(this.#noise.noise((x+chunk[0] * CHUNK_SIZE)/CHAOS, 1,  (z+chunk[1]*CHUNK_SIZE)/CHAOS) > .3){
+                let trees = gen_tree([x, y, z], blocks.wood, blocks.leaf, this.#noise);
+                for(var i = trees.length - 1; i>= 0; i--){
+                  if(trees[i][0] >= 0 && trees[i][0] < CHUNK_SIZE + 2 &&
+                  trees[i][1] >= 0 && trees[i][1] < HEIGHT &&
+                  trees[i][2] >= 0 && trees[i][2] < CHUNK_SIZE + 2 &&
+                  !my_chunk[trees[i][0]][trees[i][1]][trees[i][2]])
+                    my_chunk[trees[i][0]][trees[i][1]][trees[i][2]] = {
+                      block: trees[i][3],
+                      exposed: true
+                    };
+                }
+                break;
+              }
+            }
+        }
       }
     }
 
@@ -60,7 +92,7 @@ export class MapGenerator{
     for(var x = 1; x < CHUNK_SIZE+1; x++){
       for(var y = 0; y<HEIGHT; y++){
         for(var z = 1; z<CHUNK_SIZE+1; z++){
-          if(my_chunk[x][y][z] !== null){
+          if(my_chunk[x][y][z] !== null && my_chunk[x][y][z].block !== blocks.wood){
             my_chunk[x][y][z].exposed = this.block_is_exposed(my_chunk, x, y, z);
           }
         }
@@ -68,18 +100,19 @@ export class MapGenerator{
     }
 
     // Convert multi-dimensional array into an item that can be stored
+    let chunk_list = []
     for(var x = 1; x < CHUNK_SIZE+1; x++){
       for(var y = 0; y<HEIGHT; y++){
         for(var z = 1; z<CHUNK_SIZE+1; z++){
           if(my_chunk[x][y][z] !== null){
-            chunk_obj[JSON.stringify(this.convert_to_worldcoords(chunk, x-1, y, z-1))] = my_chunk[x][y][z];
+            chunk_list.push({block:my_chunk[x][y][z].block, x:x-1, y:y, z:z-1, exposed:my_chunk[x][y][z].exposed});
           }
         }
       }
     }
 
-    map.insert_chunk(chunk, chunk_obj);
-    return chunk_obj;
+    map.insert_chunk(chunk, chunk_list);
+    return chunk_list;
   }
 
   block_is_exposed(chunk_data, x, y, z){
