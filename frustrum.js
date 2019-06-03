@@ -31,7 +31,6 @@ export class Frustrum
                    .map( p => p.map( x => x/p[3] ).to3() );            // Manually do a perspective division
     }
   
-
   should_draw(coord){
     let x = coord[0], y=coord[1], z=coord[2];
     for(var i =0; i < 6; i++){
@@ -107,7 +106,7 @@ export class Frustrum
   inOrder(root){
     if(root.left)
       this.inOrder(root.left);
-    if(root.value.exposed && this.should_draw(root.key)){
+    if(this.should_draw(root.key)){
         this.Matrix[0][3] = root.key[0];
         this.Matrix[1][3] = root.key[1];
         this.Matrix[2][3] = root.key[2];
@@ -122,13 +121,18 @@ export class Frustrum
 
 class Plane{
   constructor(normal, point){
-    this.normal = normal;
-    this.point = point;
+    this.nx = normal[0];
+    this.ny = normal[1];
+    this.nz = normal[2];
+
+    this.px = point[0];
+    this.py = point[1];
+    this.pz = point[2];
   }
   on_correct_side(x,y,z){
-    return ((x - this.point[0]) * this.normal[0] + 
-    (y - this.point[1]) * this.normal[1] +
-    (z - this.point[2]) * this.normal[2] > -0.8);
+    return ((x - this.px) * this.nx + 
+    (y - this.py) * this.ny +
+    (z - this.pz) * this.nz > -0.8);
   }
 };
 
@@ -142,11 +146,3 @@ function compare(coord1, coord2){
   }
   return 0;
 }
-
-
-
-
-
-
-
-
