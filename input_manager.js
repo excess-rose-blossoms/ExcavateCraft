@@ -45,10 +45,16 @@ export class InputManager {
                     Math.round(position[2]+direction[2]*i)];
       let block = this.map.get(newpos);
       if(block !== null){
-        return newpos;
+        if(block.id == 6) 
+        {
+          return null;
+        }
+        else
+        {
+          return newpos;
+        }
       }
-      if(block.id == 6) // bedrock
-        return null;
+
     }
     return null;
   }
