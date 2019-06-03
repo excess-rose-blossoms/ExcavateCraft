@@ -69,7 +69,7 @@ class Not_Solar_System extends Scene{
       // Find how much time has passed in seconds
       const t = program_state.animation_time / 1000;  
           
-      program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
+      program_state.lights = [ ];//new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
       
       this.#map.draw(context, program_state);
       
