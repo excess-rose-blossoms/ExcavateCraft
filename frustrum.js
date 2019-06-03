@@ -31,6 +31,9 @@ export class Frustrum
   
 
   should_draw(coord, block){
+    if(!block.exposed){
+      return false;
+    }
     for(var i =0; i < 6; i++){
       if(! this.planes[i].on_correct_side(coord)){
         return false;
@@ -51,9 +54,7 @@ export class Frustrum
 //     if(num_adjacent >= 4){
 //       return false;
 //     }
-    if(!block.exposed){
-      return false;
-    }
+    
     return true;
      
   }
