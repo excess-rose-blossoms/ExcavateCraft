@@ -16,5 +16,5 @@ Rolling hills, plains, and beautiful trees (brush patterns also randomly generat
 #### **Game doesn't make computer explode:** 
 Includes: Self-balancing binary search tree, hash map, frustum culling.
 
-Member contributions:
-Benjamin Koh- First person movement system
+### Member contributions
+**Benjamin Koh (204916073):** First person movement system
