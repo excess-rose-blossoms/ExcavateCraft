@@ -8,6 +8,7 @@ export class InputManager {
     this.movement_controls = movement_controls;
     this.direction_map = [[1,0,0], [0,1,0], [0,0,1]];
     this.negative_direction_map = [[-1,0,0], [0,-1,0], [0,0,-1]];
+    this.selected_block = this.map.blocks.brick;
   }
 
   perform_action(context, program_state){
@@ -27,7 +28,7 @@ export class InputManager {
         if(e.button == 0)
           this.map.deleteBlock(block_coord[0]);
         if(e.button == 2){
-          this.map.insertBlock(block_coord[1], this.map.blocks.brick );
+          this.map.insertBlock(block_coord[1], this.selected_block );
         }
       }
 
@@ -41,7 +42,7 @@ export class InputManager {
   };
 
   raycast_return_coord(position, direction, depth){
-    for(var i = 0; i<=depth; i+= 0.01){
+    for(var i = 0; i<=depth; i+= 0.005){
       let newpos = [Math.round(position[0]+direction[0]*i), 
                     Math.round(position[1]+direction[1]*i), 
                     Math.round(position[2]+direction[2]*i)];
