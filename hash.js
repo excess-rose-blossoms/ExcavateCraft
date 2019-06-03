@@ -78,7 +78,7 @@ export class Map{
 		exposed: true
 	}
 	// TODO: recalculate neighboring blocks to check if they are now not exposed
-	this.frustrum.insertBlock(coord, block);
+	this.frustrum.insertBlock(coord, {block:block, exposed:true});
 	return true;
   }
 
