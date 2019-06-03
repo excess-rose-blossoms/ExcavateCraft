@@ -16,9 +16,11 @@ export class InputManager {
                               program_state.camera_transform[1][3],
                               program_state.camera_transform[2][3]];
 
-    let camera_forward = [ Math.sin(this.movement_controls.my_rot[1]),
+    let camera_forward = [ Math.sin(this.movement_controls.my_rot[1] * Math.cos(this.movement_controls.my_rot[0])),
                            -Math.sin(this.movement_controls.my_rot[0]),
-                           -Math.cos(this.movement_controls.my_rot[1]) ]
+                           -Math.cos(this.movement_controls.my_rot[1]) * Math.cos(this.movement_controls.my_rot[0]) ]
+
+    console.log("FORWARD: ", camera_forward);
 
     context.canvas.onmousedown = e => {
       let block_coord = this.raycast_return_coord(camera_translation, camera_forward, 4);
@@ -33,7 +35,7 @@ export class InputManager {
 
       };
     context.canvas.onmouseup = e => {
-        console.log(new Date().getTime() - this.#holdtime);
+        //console.log(new Date().getTime() - this.#holdtime);
         this.#holdtime = null;
       };
   };
