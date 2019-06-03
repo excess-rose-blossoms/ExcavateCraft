@@ -753,21 +753,21 @@ class Movement_Controls extends Scene
 
       //X axis collision detection
       if(relative_thrust[0] < 0 && 
-          this.map.fast_raycast(this.my_pos, this.direction_map[0], 1) === null && 
+          this.map.fast_raycast(this.my_pos, this.direction_map[0], 2) === null && 
           this.map.fast_raycast(feet, this.direction_map[0], 2) === null)
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
       else if(relative_thrust[0] > 0 && 
-              this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 1) === null &&
+              this.map.fast_raycast(this.my_pos, this.negative_direction_map[0], 2) === null &&
               this.map.fast_raycast(feet, this.negative_direction_map[0], 2) === null )
         this.my_pos[0] -= relative_thrust[0] * meters_per_frame;
 
       //Z axis collision detection
       if(relative_thrust[2] < 0 && 
-         this.map.fast_raycast(this.my_pos, this.direction_map[2], 1) === null &&
+         this.map.fast_raycast(this.my_pos, this.direction_map[2], 2) === null &&
          this.map.fast_raycast(feet, this.direction_map[2], 2) === null)
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
       else if(relative_thrust[2] > 0 && 
-              this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 1) === null &&
+              this.map.fast_raycast(this.my_pos, this.negative_direction_map[2], 2) === null &&
               this.map.fast_raycast(feet, this.negative_direction_map[2], 2) === null)
         this.my_pos[2] -= relative_thrust[2] * meters_per_frame;
 
@@ -775,7 +775,7 @@ class Movement_Controls extends Scene
        if (this.in_creative_mode)
        {
          if ( relative_thrust[1] < 0 
-              && this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null 
+              && this.map.fast_raycast(feet, this.negative_direction_map[1], 2) === null 
               && this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null )
          {
            this.my_pos[1] += relative_thrust[1] * meters_per_frame;
@@ -791,13 +791,13 @@ class Movement_Controls extends Scene
        else 
        {
         //Check if player is on the ground
-        if ( !this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) !== null) )
+        if ( !this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 2) !== null) )
         {
           console.log("GROUNDED!");
           this.grounded = true;
           this.jump_in_progress = false;
         }
-        else if ( this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null) )
+        else if ( this.grounded && (this.map.fast_raycast(feet, this.negative_direction_map[1], 2) === null) )
         {
           console.log("NOT GROUNDED!");
           this.grounded = false;
@@ -834,8 +834,8 @@ class Movement_Controls extends Scene
           this.jump_time = new Date().getTime();
         }
         //If in the air and jump not active, fall
-        else if ( this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 3) === null
-                  && this.map.fast_raycast(feet, this.negative_direction_map[1], 3) === null )
+        else if ( this.map.fast_raycast(this.my_pos, this.negative_direction_map[1], 2) === null
+                  && this.map.fast_raycast(feet, this.negative_direction_map[1], 2) === null )
           this.my_pos[1] -= meters_per_frame;
       }
 
