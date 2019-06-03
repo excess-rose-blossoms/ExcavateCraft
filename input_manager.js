@@ -8,6 +8,7 @@ export class InputManager {
     this.movement_controls = movement_controls;
     this.direction_map = [[1,0,0], [0,1,0], [0,0,1]];
     this.negative_direction_map = [[-1,0,0], [0,-1,0], [0,0,-1]];
+    this.selected_block = this.map.blocks.brick;
   }
 
   perform_action(context, program_state){
@@ -23,11 +24,13 @@ export class InputManager {
 
     context.canvas.onmousedown = e => {
       let block_coord = this.raycast_return_coord(camera_translation, camera_forward, 4);
-      if ( block_coord !== null )
-      {
-        this.map.deleteBlock(block_coord);
+      if ( block_coord !== null ){
+        if(e.button == 0)
+          this.map.deleteBlock(block_coord[0]);
+        if(e.button == 2){
+          this.map.insertBlock(block_coord[1], this.selected_block );
+        }
       }
-
 
       this.#holdtime = new Date().getTime();
       context.canvas.requestPointerLock();  
@@ -39,22 +42,30 @@ export class InputManager {
   };
 
   raycast_return_coord(position, direction, depth){
-    for(var i = 0; i<=depth; i+= 0.01){
+    for(var i = 0; i<=depth; i+= 0.005){
       let newpos = [Math.round(position[0]+direction[0]*i), 
                     Math.round(position[1]+direction[1]*i), 
                     Math.round(position[2]+direction[2]*i)];
       let block = this.map.get(newpos);
-      if(block !== null){
-        if(block.id == 6) 
-        {
+      if(block){ // bedrock
+        if(block.id == 6)
           return null;
+        let point = [position[0]+direction[0]*i - newpos[0], 
+                    position[1]+direction[1]*i - newpos[1], 
+                    position[2]+direction[2]*i - newpos[2]];
+        let diff_pos = [1,0,0];
+        let diff = 0;
+        for(var k = 0; k<3; k++){
+          if(Math.abs(point[k]) > diff){
+            diff = Math.abs(point[k]);
+            diff_pos[0] = newpos[0];
+            diff_pos[1] = newpos[1];
+            diff_pos[2] = newpos[2];
+            diff_pos[k] = newpos[k] + (point[k] > 0 ? 1 : -1);
+          }
         }
-        else
-        {
-          return newpos;
-        }
+        return [newpos, diff_pos];
       }
-
     }
     return null;
   }

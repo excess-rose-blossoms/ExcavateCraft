@@ -580,10 +580,11 @@ class Movement_Controls extends Scene
                                         // person style controls into the website.  These can be used to manually move your
                                         // camera or other objects smoothly through your scene using key, mouse, and HTML
                                         // button controls to help you explore what's in it.
-  constructor(map)
+  constructor(map, input_manager)
     { 
       super();
       this.map = map;
+      this.input_manager = input_manager;
       const data_members = { 
                              radians_per_frame: 1/200, 
                              meters_per_frame: 20,
@@ -694,6 +695,14 @@ class Movement_Controls extends Scene
       this.new_line();
       this.key_triggered_button( "Down",   [ "z" ], () => this.input_list.z = true, undefined, () => this.input_list.z = false  );   
       this.key_triggered_button( "Creative mode", [ "c" ], () => this.in_creative_mode = !this.in_creative_mode ); 
+
+      this.new_line();
+
+      this.key_triggered_button( "Wood",   [ "1" ], () => this.input_manager.selected_block = this.map.blocks.wood);     
+      this.key_triggered_button( "Leaf",   [ "2" ], () => this.input_manager.selected_block = this.map.blocks.leaf);     
+      this.key_triggered_button( "Grass",  [ "3" ], () => this.input_manager.selected_block = this.map.blocks.grass);     
+      this.key_triggered_button( "Stone",  [ "4" ], () => this.input_manager.selected_block = this.map.blocks.stone);     
+      this.key_triggered_button( "Brick",  [ "5" ], () => this.input_manager.selected_block = this.map.blocks.brick);     
   }
 
   recompute_cam_matrices()

@@ -32,17 +32,20 @@ class Not_Solar_System extends Scene{
                     leaf: new LeafBlock(),
                     bedrock: new BedrockBlock()
     };
-
     let seed = localStorage.getItem('seed');
-    if(! seed)
+    if(! seed){
       this.#seed = new Date().getTime();
+      localStorage.setItem('seed', this.#seed);
+    }
     else
-      this.#seed = seed;
-    localStorage.clear();
+      this.#seed = parseInt(seed);
+
     this.#mapGenerator = new MapGenerator(this.#seed);
     this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks, this.#mapGenerator);
     this.movement_controls = new defs.Movement_Controls(this.#map);
     this.#input_manager = new InputManager(this.#map, this.movement_controls);
+    this.movement_controls.input_manager = this.#input_manager;
+
     }
   make_control_panel(){     
                              
@@ -67,22 +70,6 @@ class Not_Solar_System extends Scene{
       const t = program_state.animation_time / 1000;  
           
       program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
-
-      let model_transform = Mat4.identity();
-      
-     /* this.#blocks.grass.draw( context, program_state, model_transform);
-      this.#blocks.brick.draw(context, program_state, model_transform.times(Mat4.translation([1,0,0])));
-      this.#blocks.stone.draw(context, program_state, model_transform.times(Mat4.translation([-1,0,0])));
-      this.#blocks.sand.draw(context, program_state, model_transform.times(Mat4.translation([0,0,-1])));
-      this.#blocks.wood.draw(context, program_state, model_transform.times(Mat4.translation([1,1,-1])));
-      this.#blocks.leaf.draw(context, program_state, model_transform.times(Mat4.translation([-1,1,-1])));*/
-
-      program_state.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of(1., 1., 1., 1.), 1000 ) ];     
-
-
-      //this.frustrum.draw(context, program_state);
-      //this.map.draw(context, program_state);
-      model_transform = Mat4.identity();
       
       this.#map.draw(context, program_state);
       
