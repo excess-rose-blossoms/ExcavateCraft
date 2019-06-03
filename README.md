@@ -18,4 +18,5 @@ Includes: Self-balancing binary search tree, hash map, frustum culling. Took the
 
 ### Member contributions
 -**Benjamin Koh (204916073):** First person movement system
+
 -**Shree Kesava Narayan Prasanna (004973979):** Basic code for frustrum culling, chunking, hash table, incorporating avl tree. (Robert Geil improved upon these).
