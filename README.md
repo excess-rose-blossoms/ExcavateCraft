@@ -1,7 +1,4 @@
-# a4-s19
+Stuff We Did
 
-Use this codebase not only for your Assignment 4, but for your Team Project!  Do not use assignment 3's; if you have already started something, copy it over to this codebase.
+First person movement system.Pretty much redone from scratch. Includes checks for collisions, jumping, and the ability to look around just by moving the mouse in a manner just like the original Minecraft. Harder than it looks since in the simplest approach, the movement direction would be dependent on the pitch, roll, and yaw, but in order to be faithful (and not nauseating), it needs to be independent on the pitch and roll BUT dependent on the yaw. Math (ew) had to be done to do this, as well as separating the camera transform into separate matrices.
 
-Assignment instructions:
-
-https://docs.google.com/document/d/1d8A0aIGXSEodmgQUyssuTVANDphaBykTY0B2CTHTEWI/edit?usp=sharing
