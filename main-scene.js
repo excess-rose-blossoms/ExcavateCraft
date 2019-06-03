@@ -13,7 +13,7 @@ const { Cube, Subdivision_Sphere, Transforms_Sandbox_Base } = defs;
 const CHUNK_DISPLAY_WIDTH = 4;
 
 const Main_Scene =
-class Not_Solar_System extends Scene{      
+class Block_Placement extends Scene{      
   #blocks;  
   #materials;
   #input_manager;   
@@ -44,9 +44,10 @@ class Not_Solar_System extends Scene{
     this.movement_controls = new defs.Movement_Controls(this.#map);
     this.#input_manager = new InputManager(this.#map, this.movement_controls);
     }
-  make_control_panel(){     
-                             
-    }
+  make_control_panel()
+  {  
+    this.key_triggered_button( "Place Block", [ "m" ], () => this.#input_manager.place_block(this.#blocks.grass), undefined);                         
+  }
   display( context, program_state )
     { 
       this.#input_manager.perform_action(context, program_state);

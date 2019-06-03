@@ -63,18 +63,23 @@ export class Map{
     let encoded_pos = this.encode_position(coord);
     let flag = {};
     if(! this.chunks.hasOwnProperty(chunk_coord_hash)){
+    	console.log("ERROR: no prop");
     	return false;
     }
     // There was alreay a block in the position!
-	if(this.chunks[chunk_coord_hash][encoded_pos])
+	if(this.chunks[chunk_coord_hash][encoded_pos]){
+		console.log("ERROR: Already has block");
 		return false;
+	}
 	
 	this.chunks[chunk_coord_hash][encoded_pos] = {
 		block:block,
 		exposed: true
 	}
 	// TODO: recalculate neighboring blocks to check if they are now not exposed
+	console.log("Reached insertblock cal!");
 	this.frustrum.insertBlock(coord, block);
+	console.log("Success!");
 	return true;
   }
 
