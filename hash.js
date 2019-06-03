@@ -39,19 +39,23 @@ export class Map{
     let chunk = this.chunks[JSON.stringify(chunk_coord)];
     if(!chunk)
     	return;
-   	// TODO: This misses the case that the removed block is BETWEEN 2 chunks
-   	if(chunk[this.encode_position([coord[0]-1, coord[1], coord[2]])])
-   		chunk[this.encode_position([coord[0]-1, coord[1], coord[2]])].exposed = true;
-   	if(chunk[this.encode_position([coord[0]+1, coord[1], coord[2]])])
-   		chunk[this.encode_position([coord[0]+1, coord[1], coord[2]])].exposed = true;
-   	if(chunk[this.encode_position([coord[0], coord[1]-1, coord[2]])])
-   		chunk[this.encode_position([coord[0], coord[1]-1, coord[2]])].exposed = true;
-   	if(chunk[this.encode_position([coord[0], coord[1]+1, coord[2]])])
-   		chunk[this.encode_position([coord[0], coord[1]+1, coord[2]])].exposed = true;
-   	if(chunk[this.encode_position([coord[0], coord[1], coord[2]-1])])
-   		chunk[this.encode_position([coord[0], coord[1], coord[2]-1])].exposed = true;
-   	if(chunk[this.encode_position([coord[0], coord[1], coord[2]+1])])
-   		chunk[this.encode_position([coord[0], coord[1], coord[2]+1])].exposed = true;
+   	for(var i = -1; i < 2; i += 2){
+		let x = this.get([coord[0]+i, coord[1], coord[2]]);
+		let y = this.get([coord[0], coord[1]+i, coord[2]]);
+		let z = this.get([coord[0], coord[1], coord[2]+i]);
+		if(x){
+			x.exposed = true;
+			this.frustrum.insertBlock(new Int16Array([coord[0]+i, coord[1], coord[2]]), x);
+		}
+		if(y){
+			y.exposed = true;
+			this.frustrum.insertBlock(new Int16Array([coord[0], coord[1]+i, coord[2]]), y);
+		}
+		if(z){
+			z.exposed = true;
+			this.frustrum.insertBlock(new Int16Array([coord[0], coord[1], coord[2]+i]), z);
+		}
+   	}
     chunk[this.encode_position(coord)] = null;
     delete this.chunks[JSON.stringify(chunk_coord)][this.encode_position(coord)];
   }
@@ -107,7 +111,8 @@ export class Map{
       let positions = this.decode_position(world_coord_hash);
       let encoded = this.encode_block(chunk[world_coord_hash].block.id, 
       positions[0], positions[1], positions[2], chunk[world_coord_hash].exposed);
-      this.frustrum.deleteBlock(new Int16Array([positions[0]+x_off, positions[1], positions[2]+z_off]));
+      if(chunk[world_coord_hash].exposed)
+      	this.frustrum.deleteBlock(new Int16Array([positions[0]+x_off, positions[1], positions[2]+z_off]));
       chunk_list.push(encoded);
     }
     localStorage.setItem(chunk_coord_hash, JSON.stringify(chunk_list));
@@ -135,7 +140,9 @@ export class Map{
       		exposed: chunk_temp[i].exposed
       	};
       	let world_coord = new Int16Array([chunk_temp[i].x + x_off, chunk_temp[i].y, chunk_temp[i].z + z_off]);
-      	this.frustrum.insertBlock(world_coord, thisblock);
+      	if(thisblock.exposed){
+      		this.frustrum.insertBlock(world_coord, thisblock);
+      	}
       	chunk[this.encode_position([chunk_temp[i].x, chunk_temp[i].y, chunk_temp[i].z])] = thisblock;
       }
     }else{
@@ -147,7 +154,9 @@ export class Map{
 				exposed: decoded[4]
 		  };
 		  let world_coord = new Int16Array([decoded[1]+x_off, decoded[2], decoded[3]+z_off]);
-		  this.frustrum.insertBlock(world_coord, thisblock);
+		  if(thisblock.exposed){
+		  	this.frustrum.insertBlock(world_coord, thisblock);
+		  }
 		  chunk[this.encode_position(world_coord)] = thisblock;
 		}
     }

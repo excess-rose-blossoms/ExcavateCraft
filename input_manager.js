@@ -20,7 +20,6 @@ export class InputManager {
                            -Math.sin(this.movement_controls.my_rot[0]),
                            -Math.cos(this.movement_controls.my_rot[1]) * Math.cos(this.movement_controls.my_rot[0]) ]
 
-    //console.log("FORWARD: ", camera_forward);
 
     context.canvas.onmousedown = e => {
       let block_coord = this.raycast_return_coord(camera_translation, camera_forward, 4);
@@ -35,13 +34,12 @@ export class InputManager {
 
       };
     context.canvas.onmouseup = e => {
-        //console.log(new Date().getTime() - this.#holdtime);
         this.#holdtime = null;
       };
   };
 
   raycast_return_coord(position, direction, depth){
-    for(var i = 0; i<=depth; i+= 0.002){
+    for(var i = 0; i<=depth; i+= 0.01){
       let newpos = [Math.round(position[0]+direction[0]*i), 
                     Math.round(position[1]+direction[1]*i), 
                     Math.round(position[2]+direction[2]*i)];
@@ -49,6 +47,8 @@ export class InputManager {
       if(block !== null){
         return newpos;
       }
+      if(block.id == 6) // bedrock
+        return null;
     }
     return null;
   }
