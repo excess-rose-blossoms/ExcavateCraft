@@ -14,7 +14,8 @@ Harder than it looks since in the simplest approach, the movement direction woul
 Rolling hills, plains, and beautiful trees (brush patterns also randomly generated) generated using Perlin noise. Landscape is made up of different blocks, with grass on the surface, and stone and bedrock under it. 
 
 #### **Game doesn't make computer explode:** 
-Includes: Self-balancing binary search tree, hash map, frustum culling.
+Includes: Self-balancing binary search tree, hash map, frustum culling. Took the AVL code from an online source, referenced in bbtree.js. These data structures ensure quick lookups of blocks when needed (say for deleting a block on click). Frustrum culling ensures not all blocks are rendered uselessly. Harder than it seems because of the math (yuck), which checks if the block is inside the view frustrum. We also split the world into chunks. Each chunk is created as a unit. Chunks are stored and loaded from local storage as necessary (depending on where the user is standing). All of this is reasonably challenging as it involves the usage of two data structures along with chunking, which is itself a store of individual blocks. Also had to deal with efficiently encoding the data to be stored. 
 
 ### Member contributions
 **Benjamin Koh (204916073):** First person movement system
+**Shree Kesava Narayan Prasanna (004973979):** Basic code for frustrum culling, chunking, hash table, incorporating avl tree. (Robert Geil improved upon these).
