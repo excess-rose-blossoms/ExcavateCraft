@@ -14,46 +14,31 @@ export class Frustrum
                                       [-1, -1, 1],   [1,  -1, 1],   [-1, 1, 1],   [1,  1, 1]  );
     this.corner_points = [];
     this.block_tree = new AvlTree(compare);
+    this.Matrix = Mat4.of([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]);
   }
 
   insertBlock(coord, block){
-    this.block_tree.delete(Vec.of(...coord));
-    this.block_tree.insert(Vec.of(...coord), block);
-  }
+    this.block_tree.delete(coord);
+    this.block_tree.insert(coord, block);
+  };
 
   deleteBlock(coord){
-    this.block_tree.delete(Vec.of(...coord));
-  }
+    this.block_tree.delete(coord);
+  };
+
   derive_frustum_points_from_matrix( m, points )
     { return points.map( p => Mat4.inverse( m ).times( p.to4(1) ) )    // Apply the linear part to the points cube.
                    .map( p => p.map( x => x/p[3] ).to3() );            // Manually do a perspective division
     }
   
 
-  should_draw(coord, block){
-    if(!block.exposed){
-      return false;
-    }
+  should_draw(coord){
+    let x = coord[0], y=coord[1], z=coord[2];
     for(var i =0; i < 6; i++){
-      if(! this.planes[i].on_correct_side(coord)){
+      if(! this.planes[i].on_correct_side(x,y,z)){
         return false;
       }
     }
-//     if(!block){
-//       return false;
-//     }
-//     let num_adjacent = 0;
-//     for(var i in [-1, 1]){
-//       for(var j in [-1, 1]){
-//         let adjacent = this.map.get(Vec.of(coord[0] + i, coord[1] + j));
-//         if(adjacent && adjacent.block){
-//           num_adjacent++;
-//         }
-//       }
-//     }
-//     if(num_adjacent >= 4){
-//       return false;
-//     }
     
     return true;
      
@@ -116,21 +101,20 @@ export class Frustrum
       this.context = context;
       this.program_state = program_state;
       this.update_frustrum(program_state);
-      this.inOrder(this.block_tree._root, this.corner_points[0], this.corner_points[7]);
+      this.inOrder(this.block_tree._root);
   }
 
-  inOrder(root, leastCoord, mostCoord){
-    if(!root){
-      return;
+  inOrder(root){
+    if(root.left)
+      this.inOrder(root.left);
+    if(root.value.exposed && this.should_draw(root.key)){
+        this.Matrix[0][3] = root.key[0];
+        this.Matrix[1][3] = root.key[1];
+        this.Matrix[2][3] = root.key[2];
+        root.value.block.draw(this.context, this.program_state, this.Matrix);
     }
-    this.inOrder(root.left, leastCoord, mostCoord);
-    if(this.should_draw(root.key, root.value)){
-      if(root.value.block)
-        root.value.block.draw(this.context, this.program_state, Mat4.identity().times(Mat4.translation(root.key)));
-      //console.log(this.corner_points);
-    }
-    this.inOrder(root.right, leastCoord, mostCoord);
-    return;
+    if(root.right)
+      this.inOrder(root.right);
   }
 
 };
@@ -141,19 +125,19 @@ class Plane{
     this.normal = normal;
     this.point = point;
   }
-  on_correct_side(coord){
-    if(coord.minus(this.point).dot(this.normal) < -0.8){
-      return false;
-    }
-    return true;
+  on_correct_side(x,y,z){
+    return ((x - this.point[0]) * this.normal[0] + 
+    (y - this.point[1]) * this.normal[1] +
+    (z - this.point[2]) * this.normal[2] > -0.8);
   }
 };
 
 function compare(coord1, coord2){
-  let dif = coord1.minus(coord2);
+  let dif;
   for(var i = 0; i < 3; i ++){
-    if(dif[i] != 0){
-      return dif[i];
+    dif = coord1[i] - coord2[i];
+    if(dif != 0){
+      return dif;
     }
   }
   return 0;

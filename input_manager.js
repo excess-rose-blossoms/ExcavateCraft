@@ -20,7 +20,7 @@ export class InputManager {
                            -Math.sin(this.movement_controls.my_rot[0]),
                            -Math.cos(this.movement_controls.my_rot[1]) ]
 
-    console.log("FORWARD: ", camera_forward);
+    //console.log("FORWARD: ", camera_forward);
 
     context.canvas.onmousedown = e => {
       let block_coord = this.raycast_return_coord(camera_translation, camera_forward, 4);
@@ -42,7 +42,7 @@ export class InputManager {
   };
 
   raycast_return_coord(position, direction, depth){
-    for(var i = 1; i<=depth; i++){
+    for(var i = 0; i<=depth; i+= 0.002){
       let newpos = [Math.round(position[0]+direction[0]*i), 
                     Math.round(position[1]+direction[1]*i), 
                     Math.round(position[2]+direction[2]*i)];

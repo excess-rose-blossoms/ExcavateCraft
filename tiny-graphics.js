@@ -31,12 +31,16 @@ class Vec extends Float32Array
   copy        () { return Vec.from( this )                                }
   equals     (b) { return this.every( (x,i) => x == b[i]                ) }
   plus       (b) { return this.map(   (x,i) => x +  b[i]                ) }
-  minus      (b) { return this.map(   (x,i) => x -  b[i]                ) }
+  minus      (b) { return Vec.of(this[0] - b[0], this[1] - b[1], this[2] - b[2]); }
   mult_pairs (b) { return this.map(   (x,i) => x *  b[i]                ) }
-  scale      (s) { this.forEach(  (x, i, a) => a[i] *= s                ) }
+  scale      (s) { this[0] *= s; this[1] *= s;  this[2] *= s }
   times      (s) { return this.map(       x => s*x                      ) }
-  randomized (s) { return this.map(       x => x + s*(Math.random()-.5) ) }
-  mix     (b, s) { return this.map(   (x,i) => (1-s)*x + s*b[i]         ) }
+  randomized (s) { return Vec.of( this[0] + s*(Math.random() -.5),
+                                  this[1] + s*(Math.random() -.5),
+                                  this[2] + s*(Math.random() -.5))}
+  mix     (b, s) { return Vec.of((1-s)*this[0] + s*b[0],
+                                 (1-s)*this[1] + s*b[1],
+                                 (1-s)*this[2] + s*b[2])}; 
   norm        () { return Math.sqrt( this.dot( this )                   ) }
   normalized  () { return this.times( 1/this.norm()                     ) }
   normalize   () {        this.scale( 1/this.norm()                     ) }
@@ -159,7 +163,7 @@ class Mat4 extends Mat
                                         // do so, but to generate the correct basis you must re-invert its result.
   
           // Compute vectors along the requested coordinate axes. "y" is the "updated" and orthogonalized local y axis.
-      let z = at.minus( eye ).normalized(),
+      let z = at.minus( eye ),//.normalized(),
           x =  z.cross( up  ).normalized(),
           y =  x.cross( z   ).normalized();
           

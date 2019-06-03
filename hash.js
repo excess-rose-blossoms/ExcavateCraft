@@ -107,7 +107,7 @@ export class Map{
       let positions = this.decode_position(world_coord_hash);
       let encoded = this.encode_block(chunk[world_coord_hash].block.id, 
       positions[0], positions[1], positions[2], chunk[world_coord_hash].exposed);
-      this.frustrum.deleteBlock([positions[0]+x_off, positions[1], positions[2]+z_off]);
+      this.frustrum.deleteBlock(new Int16Array([positions[0]+x_off, positions[1], positions[2]+z_off]));
       chunk_list.push(encoded);
     }
     localStorage.setItem(chunk_coord_hash, JSON.stringify(chunk_list));
@@ -134,7 +134,7 @@ export class Map{
       		block: chunk_temp[i].block,
       		exposed: chunk_temp[i].exposed
       	};
-      	let world_coord = [chunk_temp[i].x + x_off, chunk_temp[i].y, chunk_temp[i].z + z_off];
+      	let world_coord = new Int16Array([chunk_temp[i].x + x_off, chunk_temp[i].y, chunk_temp[i].z + z_off]);
       	this.frustrum.insertBlock(world_coord, thisblock);
       	chunk[this.encode_position([chunk_temp[i].x, chunk_temp[i].y, chunk_temp[i].z])] = thisblock;
       }
@@ -146,7 +146,7 @@ export class Map{
 				block: this.blocks[INT_TO_BLOCK[decoded[0]]],
 				exposed: decoded[4]
 		  };
-		  let world_coord = [decoded[1]+x_off, decoded[2], decoded[3]+z_off];
+		  let world_coord = new Int16Array([decoded[1]+x_off, decoded[2], decoded[3]+z_off]);
 		  this.frustrum.insertBlock(world_coord, thisblock);
 		  chunk[this.encode_position(world_coord)] = thisblock;
 		}
