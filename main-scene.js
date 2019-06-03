@@ -39,9 +39,10 @@ class Not_Solar_System extends Scene{
     else
       this.#seed = seed;
     localStorage.clear();
-    this.#input_manager = new InputManager();
     this.#mapGenerator = new MapGenerator(this.#seed);
     this.#map = new Map(CHUNK_SIZE, CHUNK_DISPLAY_WIDTH, this.#blocks, this.#mapGenerator);
+    this.movement_controls = new defs.Movement_Controls(this.#map);
+    this.#input_manager = new InputManager(this.#map, this.movement_controls);
     }
   make_control_panel(){     
                              
@@ -54,7 +55,7 @@ class Not_Solar_System extends Scene{
       if( !context.scratchpad.controls ) 
       { 
           //Add movement controls panel
-          this.children.push( context.scratchpad.controls = new defs.Movement_Controls(this.#map) );
+          this.children.push( context.scratchpad.controls = this.movement_controls );
                
           //Set up the camera           
           program_state.set_camera( Mat4.look_at( Vec.of( 0,10,10 ), Vec.of( 0,100,0 ), Vec.of( 100,100,100 ) ) );
