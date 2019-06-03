@@ -596,6 +596,7 @@ class Movement_Controls extends Scene
                              thrust: Vec.of( 0,0,0 ), 
                              my_rot: Vec.of( 0,0,0 ),
                              my_pos: Vec.of( 7,100,-7 ),
+                             special_my_rot: Vec.of( 0,0,0 ),
 
                              in_creative_mode: true,
 
@@ -729,9 +730,23 @@ class Movement_Controls extends Scene
               velocity = ( ( o.minus[i] > 0 && o.minus[i] ) || ( o.plus[i] < 0 && o.plus[i] ) ) * radians_per_frame;
 
           //Store yaw (rotation around the y-axis) in radians
-          if (i==0) { this.my_rot[1] = ((this.my_rot[1] + velocity) % (2 * Math.PI)); }
+          if (i==0) 
+          { 
+            this.my_rot[1] = ((this.my_rot[1] + velocity) % (2 * Math.PI)) ; 
+            this.special_my_rot[1] = ((this.my_rot[1] + velocity) % (2 * Math.PI)); 
+          }
           //Store pitch (rotation around the x-axis) in radians
-          else { this.my_rot[0] = ((this.my_rot[0] + velocity) % (2 * Math.PI)); }
+          else 
+          {
+            let desired_rot = ((this.my_rot[0] + velocity) % (2 * Math.PI)); 
+            if ( (desired_rot >= -Math.PI/2) && (desired_rot <= Math.PI/2) )
+            {
+              this.my_rot[0] = desired_rot;
+              this.special_my_rot[0] = desired_rot;
+            }
+
+
+          }
           this.mouse.from_center[i] = 0;
         }
 
