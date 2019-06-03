@@ -43,9 +43,9 @@ export class InputManager {
 
   raycast_return_coord(position, direction, depth){
     for(var i = 1; i<=depth; i++){
-      let newpos = [Math.floor(position[0]+direction[0]*i), 
-                    Math.floor(position[1]+direction[1]*i), 
-                    Math.floor(position[2]+direction[2]*i)];
+      let newpos = [Math.round(position[0]+direction[0]*i), 
+                    Math.round(position[1]+direction[1]*i), 
+                    Math.round(position[2]+direction[2]*i)];
       let block = this.map.get(newpos);
       if(block !== null){
         return newpos;
